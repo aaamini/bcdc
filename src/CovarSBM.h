@@ -25,10 +25,8 @@ class CovarSBM : public BasicSBM {
         arma::mat u;
         arma::mat v;
         BetaParameters beta_params;
-        // int max_label = 1;  // deprecated
         int n_comm = 1;   // number of communities; we always matain K >= n_comm + 1
         int next_label = 1;
-        double growth_factor = 2;
         double dp_concent_param;
 
         bool has_node_features = false;

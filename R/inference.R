@@ -1,0 +1,24 @@
+find_modes <- function(x) {
+  # find the modes of a vector (the values with largest frequency)
+  ux <- unique(x)
+  tab <- tabulate(match(x, ux))
+  ux[tab == max(tab)]
+}
+
+
+
+############### Computes the MAP estimated of the labels ##################
+#' @export 
+get_map_labels <- function(z_mat, burnin = NULL){
+  niter = ncol(z_mat)
+  if (is.null(burnin)) {
+      burnin = round(niter/2)
+  }
+  
+  z_mat = z_mat[,(burnin+1):niter]
+  n = nrow(z_mat)
+  z_map = sapply(1:n, function(i) find_modes(z_mat[i,])[1])
+  confidence = sapply(1:n, function(i) sum(z_mat[i,] == z_map[i])/length(z_mat[i,]) )
+
+  list(z_map = z_map, confidence = confidence)
+}
