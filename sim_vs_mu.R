@@ -4,8 +4,8 @@ Rcpp::sourceCpp("src/CovarSBM.cpp", verbose = T)
 source("R/inference.R")
 
 library(ggplot2)
-# theme_set(theme_minimal(base_size = 18))
-theme_set(theme_minimal())
+theme_set(theme_minimal(base_size = 12))
+# theme_set(theme_minimal())
 library(dplyr)
 library(tictoc)
 library(parallel)
@@ -99,4 +99,19 @@ plt1 = res %>%
   ylab("NMI") + xlab("mu") +
   labs(title = sprintf("n = %d,  p = %2.1f,  r = %2.1f", n, p, r))
 
-print(plt2)
+plt2 = res %>% 
+  group_by(method, mu) %>% summarise(nmi = mean(nmi)) %>% 
+  ggplot(aes(x = mu, y = nmi, color = method)) + 
+  geom_line(size = 1.2) +
+  ggplot2::theme(
+    legend.background = ggplot2::element_blank(),
+    legend.title = ggplot2::element_blank(),
+    legend.position = c(0.9, 0.2),
+    # legend.text = ggplot2::element_text(size=18),
+  ) + 
+  ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
+  ylab("NMI") + xlab("mu") 
+  # labs(title = sprintf("n = %d,  p = %2.1f,  r = %2.1f", n, p, r))
+
+print(plt1 + plt2)
+ggsave(sprintf("gauss_n=%d_p=%2.1f_r=%2.1f.png", n, p, r), width = 10, height = 5)
