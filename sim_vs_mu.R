@@ -20,8 +20,8 @@ alpha = 1
 beta = 5
 dp_concent = 1
 
-niter = 250
-nreps = 64
+niter = 1000
+nreps = 32
 n_cores = 32
 
 methods = list()
@@ -48,15 +48,15 @@ mtd_names = names(methods)
 
 runs = expand.grid(mu = seq(0,2,by = 0.25), rep = 1:nreps)
 
-r = 0.2
+r = 0.5
 p = 0.1
 eta = matrix(c(p, r*p, r*p, p), nrow=2)
 
 
 cl <- parallel::makeForkCluster(n_cores)
 
-# res = do.call(rbind, mclapply(1:nrow(runs), function(ri) {
 # res = do.call(rbind, lapply(1:nrow(runs), function(ri) {
+# res = do.call(rbind, mclapply(1:nrow(runs), function(ri) {
 res = do.call(rbind, 
 foreach(ri = 1:nrow(runs)) %dopar% {
   rep = runs[ri,"rep"]
@@ -81,9 +81,9 @@ foreach(ri = 1:nrow(runs)) %dopar% {
         method = mtd_names[j])
   }))
 })
-parallel::stopCluster(cl)  
 # }, mc.cores = n_cores))
 # }))    
+parallel::stopCluster(cl)  
 
 plt1 = res %>% 
   # group_by(method, mu) %>% summarise(nmi = mean(nmi)) %>% 
@@ -97,7 +97,7 @@ plt1 = res %>%
   ) + 
   ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
   ylab("NMI") + xlab("mu") +
-  labs(title = sprintf("n = %d,  p = %2.1f,  r = %2.1f", n, p, r))
+   labs(title = sprintf("n = %d,  p = %2.1f,  r = %2.1f", n, p, r))
 
 plt2 = res %>% 
   group_by(method, mu) %>% summarise(nmi = mean(nmi)) %>% 
