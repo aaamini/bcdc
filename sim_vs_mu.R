@@ -24,6 +24,10 @@ niter = 1000
 nreps = 32
 n_cores = 32
 
+r = 0.2
+p = 0.1
+eta = matrix(c(p, r*p, r*p, p), nrow=2)
+
 methods = list()
 
 methods[["SBM"]] =  function(A, X) {
@@ -35,6 +39,11 @@ methods[["SBM"]] =  function(A, X) {
 methods[["k-means"]] =  function(A, X) {
    kmeans(X, K, nstart = 20)$cluster
 }
+
+methods[["SC"]] =  function(A, X) {
+   nett::spec_clust(A, K)
+}
+
 
 methods[["BCDC"]] =  function(A, X) {
   model = new(CovarSBM, A, alpha, beta, dp_concent)
@@ -48,9 +57,8 @@ mtd_names = names(methods)
 
 runs = expand.grid(mu = seq(0,2,by = 0.25), rep = 1:nreps)
 
-r = 0.5
-p = 0.1
-eta = matrix(c(p, r*p, r*p, p), nrow=2)
+
+
 
 
 cl <- parallel::makeForkCluster(n_cores)
