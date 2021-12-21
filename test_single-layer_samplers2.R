@@ -26,13 +26,13 @@ include_dpsbm_flag = T
 mu = 3
 Mu = rbind(c(mu, 0), c(-mu,0))
 
-comp_agg_nmi_path = function(z_list) {
-   sapply(seq_along(z_list), function(it) hsbm::get_agg_nmi(z_list[[it]], list(z_tru))) 
-}
+# comp_agg_nmi_path = function(z_list) {
+#    sapply(seq_along(z_list), function(it) hsbm::get_agg_nmi(z_list[[it]], list(z_tru))) 
+# }
 
-convert_cpp_label_matrix_to_list = function(zmat) {
-  lapply(1:ncol(zmat), function(it) list(zmat[,it]+1))  # the list() is there to treat these  multi-layer labels with only a single layer 
-}
+# convert_cpp_label_matrix_to_list = function(zmat) {
+#   lapply(1:ncol(zmat), function(it) list(zmat[,it]+1))  # the list() is there to treat these  multi-layer labels with only a single layer 
+# }
 
 methods = list()
 
@@ -108,20 +108,20 @@ for (rep in 1:nreps) {
     res_curr = do.call(rbind, lapply(seq_along(methods), function(j) {
       # dt = system.time( z_list <- convert_cpp_label_matrix_to_list( methods[[j]](A) ) )["elapsed"]
       tic()
-      z_list <- convert_cpp_label_matrix_to_list( methods[[j]](A, X) )
+      # z_list <- convert_cpp_label_matrix_to_list( methods[[j]](A, X) )
+      z_hist <- methods[[j]](A, X) 
       dt = toc(quiet = T)
        data.frame(iter = 1:niter,
           dt = as.numeric(dt$toc - dt$tic), 
           rep = rep,
           rep_per_net = j,
-          nmi = comp_agg_nmi_path(z_list),
+          nmi = apply(z_hist, 2, function(z) nett::compute_mutual_info(z, z_tru)), # comp_agg_nmi_path(z_list),
           method = mtd_names[j])
     }))
 
     res = rbind(res, res_curr)
   }
 }
-
 
 p = res %>% 
   group_by(iter, method) %>% summarise(nmi = mean(nmi)) %>% 
