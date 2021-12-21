@@ -16,7 +16,7 @@ lambda = 10 # SBM average expected degree
 K = 2
 alpha = 1
 beta = 1
-Zcap = 5  # increasing this slows down the collapsed one significantly
+Zcap = 5  # for truncated DP-SBM, increasing this slows down the collapsed one significantly
 
 niter = 50
 nreps = 50
@@ -26,14 +26,6 @@ include_dpsbm_flag = T
 mu = 3
 Mu = rbind(c(mu, 0), c(-mu,0))
 
-# comp_agg_nmi_path = function(z_list) {
-#    sapply(seq_along(z_list), function(it) hsbm::get_agg_nmi(z_list[[it]], list(z_tru))) 
-# }
-
-# convert_cpp_label_matrix_to_list = function(zmat) {
-#   lapply(1:ncol(zmat), function(it) list(zmat[,it]+1))  # the list() is there to treat these  multi-layer labels with only a single layer 
-# }
-
 methods = list()
 
 # Rcpp::sourceCpp("src/multsbm.cpp", verbose = T)
@@ -41,7 +33,7 @@ methods = list()
 #   multsbm_gibbs_sampler_fast(A, K, alpha, beta = beta, niter = niter)
 # }
 
-methods[["SBM-class"]] =  function(A, X) {
+methods[["SBM"]] =  function(A, X) {
    model = new(SBM, A, K, alpha, beta)
    model$run_gibbs(niter)[,-1]
 }
@@ -73,11 +65,6 @@ methods[["CovarSBM (10)"]] =  function(A, X) {
 }
 
 
-# z_hist = methods[["SBM-CRP"]](A)
-# apply(z_hist, 2, function(z) nett::compute_mutual_info(z, z_tru))
-# cbind()
-
-
 if (include_dpsbm_flag) {
   # DP-SBM
   Rcpp::sourceCpp("src/dpsbm.cpp", verbose = T)
@@ -106,16 +93,14 @@ for (rep in 1:nreps) {
   
   for (j in 1:nreps_per_net) {
     res_curr = do.call(rbind, lapply(seq_along(methods), function(j) {
-      # dt = system.time( z_list <- convert_cpp_label_matrix_to_list( methods[[j]](A) ) )["elapsed"]
       tic()
-      # z_list <- convert_cpp_label_matrix_to_list( methods[[j]](A, X) )
       z_hist <- methods[[j]](A, X) 
       dt = toc(quiet = T)
        data.frame(iter = 1:niter,
           dt = as.numeric(dt$toc - dt$tic), 
           rep = rep,
           rep_per_net = j,
-          nmi = apply(z_hist, 2, function(z) nett::compute_mutual_info(z, z_tru)), # comp_agg_nmi_path(z_list),
+          nmi = apply(z_hist, 2, function(z) nett::compute_mutual_info(z, z_tru)), 
           method = mtd_names[j])
     }))
 
@@ -142,12 +127,3 @@ ggsave(sprintf("covar_sbm_n=%d_K=%d_lam=%d_mu=%d.png", n, K, round(lambda), roun
 
 
 res %>% group_by(method) %>% summarise(avg_time = mean(dt))
-
-# Tests 
-# hsbm::seq_nmi_plot(z_list)
-# comp_beta_matrix(A, z-1, K, alpha1, beta1)
-# comp_Bet(A, z, K, alpha1, beta1)
-
-# # Speed test
-# microbenchmark::microbenchmark(regular =  fit_dpsbm(A, Zcap = Zcap, niter = niter),
-#                                 collapsed =  fit_dpsbm_collapsed(A, Zcap = Zcap, niter = niter), times = 20)
