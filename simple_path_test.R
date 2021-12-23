@@ -11,15 +11,15 @@ library(dplyr)
 library(tictoc)
 
 set.seed(185)
-n = 50 # try 125
+n = 850 # try 125
 lambda = 10 # SBM average expected degree 
 K = 2
 alpha = 1
 beta = 1
 Zcap = 5  # for truncated DP-SBM, increasing this slows down the collapsed one significantly
 
-niter = 50
-nreps = 50
+niter = 1000
+nreps = 5
 nreps_per_net = 3 # Try also 5
 include_dpsbm_flag = T
 
@@ -44,10 +44,10 @@ methods[["SBM-CRP (1)"]] =  function(A, X) {
   model$run_gibbs(niter)[,-1]
 }
 
-methods[["SBM-CRP (10)"]] =  function(A, X) {
-  model = new(CovarSBM, A, alpha, beta, 10)
-  model$run_gibbs(niter)[,-1]
-}
+# methods[["SBM-CRP (10)"]] =  function(A, X) {
+#   model = new(CovarSBM, A, alpha, beta, 10)
+#   model$run_gibbs(niter)[,-1]
+# }
 
 
 methods[["CovarSBM (1)"]] =  function(A, X) {
@@ -57,12 +57,12 @@ methods[["CovarSBM (1)"]] =  function(A, X) {
   model$run_gibbs(niter)[,-1]
 }
 
-methods[["CovarSBM (10)"]] =  function(A, X) {
-  model = new(CovarSBM, A, alpha, beta, 10)
-  # model$set_gauss_param(1, 1)
-  model$set_node_features(X)
-  model$run_gibbs(niter)[,-1]
-}
+# methods[["CovarSBM (10)"]] =  function(A, X) {
+#   model = new(CovarSBM, A, alpha, beta, 10)
+#   # model$set_gauss_param(1, 1)
+#   model$set_node_features(X)
+#   model$run_gibbs(niter)[,-1]
+# }
 
 
 if (include_dpsbm_flag) {
