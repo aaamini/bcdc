@@ -13,20 +13,22 @@ library(foreach)
 library(patchwork)
 
 set.seed(185)
-n = 150 # try 125
-# lambda = 10 # SBM average expected degree 
+n = 400
+
 K = 2
 alpha = 1
 beta = 5
 dp_concent = 1
 
-niter = 1000
+niter = 500
 nreps = 32
 n_cores = 32
 
-r = 0.2
-p = 0.1
+r = 0.5
+p = 1
+lambda = 15 # SBM average expected degree 
 eta = matrix(c(p, r*p, r*p, p), nrow=2)
+eta = lambda * eta  / nett::get_dcsbm_exav_deg(n, c(1,1)/2, eta)
 
 methods = list()
 
