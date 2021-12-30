@@ -94,7 +94,8 @@ X = as.matrix(log(df$BodyWeight), ncol=1)
 
 niter = 500
 model = new(CovarSBM, A, 1, 1, 1)
-model$set_continuous_features(X)
+# model$set_continuous_features(X)
+model$set_node_features(X)
 tic()
 zout = model$run_gibbs(niter) # 
 toc()

@@ -13,7 +13,7 @@ library(foreach)
 library(patchwork)
 
 set.seed(185)
-n = 400
+n = 1000
 
 K = 2
 alpha = 1
@@ -26,13 +26,13 @@ n_cores = 32
 
 r = 0.5
 p = 1
-lambda = 15 # SBM average expected degree 
+lambda = 20 # SBM average expected degree 
 eta = matrix(c(p, r*p, r*p, p), nrow=2)
 eta = lambda * eta  / nett::get_dcsbm_exav_deg(n, c(1,1)/2, eta)
 
 methods = list()
 
-methods[["SBM"]] =  function(A, X) {
+methods[["BSBM"]] =  function(A, X) {
    model = new(SBM, A, K, alpha, beta)
    get_map_labels(model$run_gibbs(niter))$z_map
   #  model$z
@@ -95,6 +95,8 @@ foreach(ri = 1:nrow(runs)) %dopar% {
 # }))    
 parallel::stopCluster(cl)  
 
+res = res %>% mutate(method = factor(method, levels = c("BCDC","BSBM","CASC","SC","k-means")))
+
 plt1 = res %>% 
   # group_by(method, mu) %>% summarise(nmi = mean(nmi)) %>% 
   ggplot(aes(x = as.factor(mu), y = nmi, fill = method)) + 
@@ -102,12 +104,12 @@ plt1 = res %>%
   ggplot2::theme(
     legend.background = ggplot2::element_blank(),
     legend.title = ggplot2::element_blank(),
-    legend.position = c(0.9, 0.2),
+    legend.position = c(0.2, 0.9),
     # legend.text = ggplot2::element_text(size=18),
   ) + 
   ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
   ylab("NMI") + xlab("mu") +
-   labs(title = sprintf("n = %d,  p = %2.1f,  r = %2.1f", n, p, r))
+   labs(title = sprintf("n = %d,  lambda = %2.1f,  r = %2.1f", n, lambda, r))
 
 plt2 = res %>% 
   group_by(method, mu) %>% summarise(nmi = mean(nmi)) %>% 
@@ -116,7 +118,7 @@ plt2 = res %>%
   ggplot2::theme(
     legend.background = ggplot2::element_blank(),
     legend.title = ggplot2::element_blank(),
-    legend.position = c(0.9, 0.2),
+    legend.position = c(0.2, 0.9),
     # legend.text = ggplot2::element_text(size=18),
   ) + 
   ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
@@ -124,4 +126,4 @@ plt2 = res %>%
   # labs(title = sprintf("n = %d,  p = %2.1f,  r = %2.1f", n, p, r))
 
 print(plt1 + plt2)
-ggsave(sprintf("gauss_n=%d_p=%2.1f_r=%2.1f.png", n, p, r), width = 10, height = 5)
+ggsave(sprintf("gauss_n=%d_lam=%2.1f_r=%2.1f.png", n, lambda, r), width = 10, height = 5)
