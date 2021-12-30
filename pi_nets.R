@@ -1,6 +1,7 @@
 library(igraph)
 library(nett)
 library(tidyverse)
+source("R/inference.R")
 
 # # df = read.delim("data/temp/511145.protein.links.v11.5.txt", sep=" ")
 # df = read.delim("data/pi_nets//9606.protein.links.v11.5.txt.gz", sep=" ")
@@ -43,7 +44,6 @@ zout_list = foreach(ri = 1:nreps, .combine = 'c') %dopar% {
 }
 stopCluster(cl) 
 # }, mc.cores = 32))
-
 
 
 sort_labels = function(z) {
@@ -99,9 +99,6 @@ for (rep in 1:nreps) {
   dev.off()
 }
 
-get_seq_nmi = function(zout) {
-  sapply(1:(ncol(zout)-1), function(itr) nett::compute_mutual_info(zout[,itr], zout[,itr+1]))
-}
 
 cl <- makeForkCluster(n_cores)
 registerDoParallel(cl)

@@ -5,7 +5,20 @@ find_modes <- function(x) {
   ux[tab == max(tab)]
 }
 
+sort_labels = function(z) {
+  z_new = z
+  sorted_comms = sort(table(z), dec = T)
+  old_labels = as.integer(names(sorted_comms))
+  old_labels
+  for (i in seq_along(old_labels)) {
+    z_new[z == old_labels[i]] = i
+  }
+  z_new
+}
 
+get_seq_nmi = function(zout) {
+  sapply(1:(ncol(zout)-1), function(itr) nett::compute_mutual_info(zout[,itr], zout[,itr+1]))
+}
 
 ############### Computes the MAP estimated of the labels ##################
 #' @export 
