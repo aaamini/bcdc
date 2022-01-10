@@ -1,3 +1,9 @@
+
+nmi_wrapper = function(z, y) {
+  NMI::NMI(cbind(seq_along(z), z), cbind(seq_along(y), y))$value
+}
+
+
 find_modes <- function(x) {
   # find the modes of a vector (the values with largest frequency)
   ux <- unique(x)

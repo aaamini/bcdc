@@ -35,7 +35,19 @@ void CovarSBM::resize()
     eta.resize(K, K); // the new entries has to filled with eta prior
     u.resize(K, K);
     v.resize(K, K);
-    xi.resize(K, feature_dim);
+
+    if (has_cont_features) 
+    {
+        xic.resize(K, feature_dim_cont);
+    }
+    if (has_disc_features)
+    {
+        // xid.resize(K, feature_dim_disc);
+        for (int r = 0; r < feature_dim_disc; r++) 
+        {
+            xid[r].resize(n_cats(r), K);
+        }
+    }
 }
 
 // void CovarSBM::reset_K() 
@@ -60,13 +72,31 @@ void CovarSBM::resize()
 
 // }
 
-void CovarSBM::set_node_features(const arma::mat& X_) 
+void CovarSBM::set_continuous_features(const arma::mat& X_) 
 {
-    X = X_;
-    feature_dim = X.n_cols;
-    has_node_features = true;
-    xi = arma::mat(K, feature_dim, arma::fill::zeros);
-    dist_mat = arma::mat(K, n, arma::fill::zeros);
+    Xc = X_;
+    feature_dim_cont = Xc.n_cols;
+    // feature_dim += feature_dim_cont;
+    has_cont_features = true;
+    xic = arma::mat(K, feature_dim_cont, arma::fill::zeros);
+    // dist_mat = arma::mat(K, n, arma::fill::zeros);
+}
+
+void CovarSBM::set_discrete_features(const arma::umat& X_) 
+{
+    Xd = X_;
+    feature_dim_disc = Xd.n_cols;
+    // feature_dim += feature_dim_disc;
+    has_disc_features = true;
+    //  xid = arma::mat(K, feature_dim_disc, arma::fill::zeros);
+    
+    //n_cats = arma::uvec(feature_dim_disc);
+    n_cats = arma::max(Xd, 0).t() + 1;
+    xid.reserve(feature_dim_disc);
+    for (int r = 0; r < feature_dim_disc; r++) 
+    {
+        xid.push_back(arma::mat(n_cats(r), K, arma::fill::zeros));
+    }
 }
 
 void CovarSBM::set_gauss_param(const double s2_, const double tau2_) 
@@ -115,36 +145,55 @@ void CovarSBM::sample_crp()
 }
 
 
-void CovarSBM::update_dist_mat() {
-    // for (int i = 0; i < n; i++) {
-    //     for (int k = 0; k <= max_label; k++) { // compute one more row
-    //         dist_mat(k, i) = pow(arma::norm(X.row(i) - xi.row(k)), 2) / (2*s2); 
-    //     }
-    // }
-}
+// void CovarSBM::update_dist_mat() {
+//     // for (int i = 0; i < n; i++) {
+//     //     for (int k = 0; k <= max_label; k++) { // compute one more row
+//     //         dist_mat(k, i) = pow(arma::norm(X.row(i) - xi.row(k)), 2) / (2*s2); 
+//     //     }
+//     // }
+// }
 
-arma::mat CovarSBM::update_xi() 
+void CovarSBM::update_xi() 
 {
-    arma::mat centers(K, feature_dim, arma::fill::zeros);
-    auto sds = arma::vec(K, arma::fill::ones);
-    auto freq = get_label_freq();
+    if (has_cont_features)
+    {
+        arma::mat centers(K, feature_dim_cont, arma::fill::zeros);
+        auto sds = arma::vec(K, arma::fill::ones);
+        auto freq = get_label_freq();
 
-    // compute the mean of features over z-clusters
-    for (int i = 0; i < n; i++) {
-        centers.row(z(i)) += X.row(i);
-    }
+        // compute the mean of features over z-clusters
+        for (int i = 0; i < n; i++) {
+            centers.row(z(i)) += Xc.row(i);
+        }
 
-    double temp = 0;
-    for (int k = 0; k < K; k++) {
-        if (freq(k) > 0 || k == next_label) // We only need to update these indices
-        {
-            temp = tau2 / (freq(k)*tau2 + s2); // freq(k) will be zero for k == next_label
-            centers.row(k) *= temp; // centers.row(k) will be zero for k == next_label
-            sds(k) = sqrt(s2*temp);
+        double temp = 0;
+        for (int k = 0; k < K; k++) {
+            if (freq(k) > 0 || k == next_label) // We only need to update these indices
+            {
+                temp = tau2 / (freq(k)*tau2 + s2); // freq(k) will be zero for k == next_label
+                centers.row(k) *= temp; // centers.row(k) will be zero for k == next_label
+                sds(k) = sqrt(s2*temp);
 
-            xi.row(k) = centers.row(k) + sds(k)*arma::rowvec(feature_dim, arma::fill::randn);
+                xic.row(k) = centers.row(k) + sds(k)*arma::rowvec(feature_dim_cont, arma::fill::randn);
+            }
         }
     }
+    if (has_disc_features)
+    {
+        for (int r  = 0; r < feature_dim_disc; r++) 
+        {
+            arma::mat dirch_param(n_cats(r), K, arma::fill::ones); // Assumes Dirichelt prior parameter is 1
+            for(int i = 0; i < n; i++) 
+            {
+                dirch_param(Xd(i,r), z(i))++;
+            }
+            for (int k = 0; k < K; k++) 
+            {
+                xid[r].col(k) = rdirichlet(dirch_param.col(k));
+            }
+        }
+    }
+    
 
 
     // double temp = 0;
@@ -164,7 +213,7 @@ arma::mat CovarSBM::update_xi()
     // }
     // xi += centers;
 
-    return centers;
+    // return centers;
 }
 
 void CovarSBM::update_eta() 
@@ -207,9 +256,17 @@ void CovarSBM::repopulate_from_prior(){
         u(l, next_label) = u(next_label, l);
         v(l, next_label) = v(next_label, l);
     }
-    if (has_node_features)
+    if (has_cont_features)
     {
-        xi.row(next_label) = sqrt(tau2)*arma::rowvec(feature_dim, arma::fill::randn);
+        xic.row(next_label) = sqrt(tau2)*arma::rowvec(feature_dim_cont, arma::fill::randn);
+    }
+    if (has_disc_features)
+    {
+        for (int r  = 0; r < feature_dim_disc; r++) 
+        {
+            arma::mat dirch_param(n_cats(r), K, arma::fill::ones); // Assumes Dirichelt prior parameter is 1
+            xid[r].col(next_label) = rdirichlet(dirch_param.col(next_label));
+        }
     }
     // if (arma::any(arma::any(u == arma::datum::inf))) {
     //     Rcout << "update_eta" << u << "\n" << eta;
@@ -250,14 +307,20 @@ void CovarSBM::update_z_element(const int i) {
             //     Rcout << v << "\n";
             // }
             // Rcout << "3";
-            if (has_node_features) 
+            if (has_cont_features) 
             { 
                 // Rcout << pow(arma::norm(X.row(i) - xi.row(k)), 2) / (2*s2) << "  ";
-                log_prob(k) -= pow(arma::norm(X.row(i) - xi.row(k)), 2) / (2*s2); 
+                log_prob(k) -= pow(arma::norm(Xc.row(i) - xic.row(k)), 2) / (2*s2); 
             }
             // if (arma::any(log_prob == arma::datum::inf)) Rcout << "->Inf\n";
             // Rcout << log_prob.t() << "\n";
             // Rcout << "4\n";
+            if (has_disc_features) {
+                for (int r  = 0; r < feature_dim_disc; r++) 
+                {
+                    log_prob(k) += log( xid[r](Xd(i,r), k) );
+                }
+            }
 
         }
         else
@@ -341,7 +404,7 @@ arma::umat CovarSBM::run_gibbs(const int niter) {
     for (int iter = 0; iter < niter; iter++) 
     {   
         update_eta();
-        if (has_node_features) 
+        if (has_cont_features || has_disc_features) 
         {
             update_xi();
         }
@@ -381,23 +444,26 @@ RCPP_MODULE(sbm_module) {
         .constructor<arma::sp_mat, int, double, double>()
         .field("eta", &CovarSBM::eta)
         .field("feature_dim", &CovarSBM::feature_dim)
-        .field("X", &CovarSBM::X)
-        .field("xi", &CovarSBM::xi)
+        .field("Xc", &CovarSBM::Xc)
+        .field("xic", &CovarSBM::xic)
+        .field("Xd", &CovarSBM::Xd)
+        .field("xid", &CovarSBM::xid)
         .field("u", &CovarSBM::u)
         .field("v", &CovarSBM::v)
+        .field("n_cats", &CovarSBM::n_cats)
         // .field("max_label", &CovarSBM::max_label)
         .field("next_label", &CovarSBM::next_label)
-        .field("has_node_features", &CovarSBM::has_node_features)
-        .field("dist_mat", &CovarSBM::dist_mat)
+        .field("has_cont_features", &CovarSBM::has_cont_features)
+        .field("has_disc_features", &CovarSBM::has_disc_features)
         .field("s2", &CovarSBM::s2)
         .field("tau2", &CovarSBM::tau2)
         .method("update_eta", &CovarSBM::update_eta)
         .method("update_xi", &CovarSBM::update_xi)
-        .method("update_dist_mat", &CovarSBM::update_dist_mat)
         .method("update_z_element", &CovarSBM::update_z_element)
         .method("run_gibbs", &CovarSBM::run_gibbs)
         .method("sample_crp", &CovarSBM::sample_crp)
-        .method("set_node_features", &CovarSBM::set_node_features)
+        .method("set_continuous_features", &CovarSBM::set_continuous_features)
+        .method("set_discrete_features", &CovarSBM::set_discrete_features)
         .method("set_gauss_param", &CovarSBM::set_gauss_param)
         .method("set_beta_params", &CovarSBM::set_beta_params)
         .method("resize", &CovarSBM::resize)
