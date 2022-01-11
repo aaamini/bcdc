@@ -3,6 +3,8 @@ library(ggplot2)
 library(NMI)
 library(igraph)
 library(scales)
+library(tibble)
+library(dplyr)
 
 # Functions ----
 Rcpp::sourceCpp("src/SBM.cpp", verbose = T)
@@ -76,9 +78,6 @@ apply(Xd, 2, function(x) length(unique(x))) # number of categories for each disc
 # levels(Z_true) = c("p","np","np","np")
 
 # BCDC ----
-library(tictoc)
-library(tibble)
-library(tidyverse)
 set.seed(575)
 n_iter <- 200
 
@@ -90,10 +89,8 @@ bcdc$set_continuous_features(Cov)
 zout = bcdc$run_gibbs(n_iter)
 Z_bcdc <- get_map_labels(zout)$z_map
 
-# bench::mark(v1 = bcdc$run_gibbs(n_iter))
-
 nmi_wrapper(Z_true, Z_bcdc)
-NMI(cbind(seq_len(n), Z_true), cbind(seq_len(n), Z_bcdc))
+# NMI(cbind(seq_len(n), Z_true), cbind(seq_len(n), Z_bcdc))
 data.frame(itr=1:n_iter, nmi = get_seq_nmi(zout)) %>% 
   ggplot(aes(itr, nmi)) + 
   geom_line() + xlab("Iteration") + ylab("Seqential NMI")
@@ -103,7 +100,6 @@ table(Z_bcdc_sorted)
 idx = order(Z_bcdc_sorted)
 Matrix::image(A[idx,idx])
 Matrix::image(A)
-
 
 
 # CASC ----
