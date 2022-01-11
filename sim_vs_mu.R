@@ -11,14 +11,16 @@ library(tictoc)
 library(parallel)
 library(foreach)
 library(patchwork)
+# library(doParallel)
+library(pbmcapply)
 
 set.seed(185)
 n = 150 # try 125
 # lambda = 10 # SBM average expected degree 
 K = 2
 alpha = 1
-beta = 5
-dp_concent = 1
+beta = 1
+dp_concent = 10
 
 niter = 1000
 nreps = 32
@@ -58,17 +60,18 @@ mtd_names = names(methods)
 
 runs = expand.grid(mu = seq(0,2,by = 0.25), rep = 1:nreps)
 
-cl <- parallel::makeForkCluster(n_cores)
-registerDoParallel(cl)
+# cl <- parallel::makeForkCluster(n_cores)
+# registerDoParallel(cl)
 
 # res = do.call(rbind, lapply(1:nrow(runs), function(ri) {
 # res = do.call(rbind, mclapply(1:nrow(runs), function(ri) {
-res = do.call(rbind, 
-foreach(ri = 1:nrow(runs)) %dopar% {
+res = do.call(rbind, pbmclapply(1:nrow(runs), mc.cores = n_cores, FUN = function(ri) {
+# res = do.call(rbind, 
+# foreach(ri = 1:nrow(runs)) %dopar% {
   rep = runs[ri,"rep"]
   mu = runs[ri,"mu"]
 
-  z_tru = sample(1:K, n, replace = T)
+  z_tru = sample(1:K, n, replace = T, prob = c(1,2))
   # eta = nett::gen_rand_conn(n, K, lambda = lambda) #, gamma = 0.5)
   A = nett::fast_sbm(z_tru, eta)
 
@@ -83,13 +86,15 @@ foreach(ri = 1:nrow(runs)) %dopar% {
         dt = as.numeric(dt$toc - dt$tic), 
         rep = rep,
         mu = mu,
-        nmi = nett::compute_mutual_info(zh, z_tru), 
+        # nmi = nett::compute_mutual_info(zh, z_tru),
+        nmi = nmi_wrapper(zh, z_tru), 
         method = mtd_names[j])
   }))
-})
+#})
 # }, mc.cores = n_cores))
-# }))    
-parallel::stopCluster(cl)  
+}))    
+
+# arallel::stopCluster(cl)  
 
 plt1 = res %>% 
   # group_by(method, mu) %>% summarise(nmi = mean(nmi)) %>% 
