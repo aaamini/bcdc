@@ -20,7 +20,7 @@ n = 150 # try 125
 K = 2
 alpha = 1
 beta = 1
-dp_concent = 1
+dp_concent = 3
 
 niter = 100
 nreps = 32
