@@ -20,7 +20,7 @@ n = 150 # try 125
 K = 2
 alpha = 1
 beta = 1
-dp_concent = 3
+dp_concent = 1
 
 niter = 100
 nreps = 32
@@ -77,9 +77,9 @@ res = do.call(rbind, pbmclapply(1:nrow(runs), mc.cores = n_cores, FUN = function
   theta = cbind(rdirichlet(rep(1,4)), rdirichlet(rep(1,4)))
   # theta = cbind(c(1,0,0,0),c(0,0,1,0)) # for test
   X = cbind(
-    apply(theta[, z_tru], 2, function(th) sample(1:4, 1, prob = th)), 
-    sample(1:4, n, T)
-  ) 
+    apply(theta[, z_tru], 2, function(th) sample(0:3, 1, prob = th)), 
+    sample(0:3, n, T)
+  ) # has to be \in 0,1,...,n_cats
   
   do.call(rbind, lapply(seq_along(methods), function(j) { 
     tic()
