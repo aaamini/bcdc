@@ -1,4 +1,3 @@
-
 nmi_wrapper = function(z, y) {
   NMI::NMI(cbind(seq_along(z), z), cbind(seq_along(y), y))$value
 }
