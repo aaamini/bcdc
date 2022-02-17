@@ -100,16 +100,11 @@ for (type in levels(Z_true)) {
               , ind[hclust(dist(A[ind, ind], method = "binary"))$order])
 }
 
-row_plot <- as.data.frame(Z_true)
-rownames(A) <- rownames(row_plot)
-names(row_plot) <- "Feeding Type"
-
 pheatmap(A[Z_sort, Z_sort]
          , color = colorRampPalette(brewer.pal(9,"Greys")[c(1,8)])(30)
          , cluster_cols = F, cluster_rows = F
          , gaps_row = cumsum(tabulate(Z_true))
          , gaps_col = cumsum(tabulate(Z_true))
-         , annotation_row = row_plot
          , annotation_names_row = F
          , show_rownames = F, show_colnames = F
          , legend = F)
@@ -122,7 +117,9 @@ pheatmap(A[idx, idx]
          , cluster_cols = F, cluster_rows = F
          , gaps_row = cumsum(tabulate(Z_bcdc_sorted))
          , gaps_col = cumsum(tabulate(Z_bcdc_sorted))
-         , annotation_row = row_plot
          , annotation_names_row = F
          , show_rownames = F, show_colnames = F
          , annotation_legend = F, legend = F)
+
+-2 * nett::eval_dcsbm_bic(A, as.integer(Z_true), length(unique(Z_true)), poi = F)
+-2 * nett::eval_dcsbm_bic(A, Z_bcdc, length(unique(Z_bcdc)), poi = F)
