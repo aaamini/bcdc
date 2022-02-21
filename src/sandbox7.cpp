@@ -36,7 +36,6 @@ int main() {
 
     // auto idx4 = arma::join_vert(arma::regspace(1,2), 
     //     arma::regspace(3,4));
-    
 
     std::cout << B << "\n" // << B(idx3, idx4) 
         << "\n" << B(idx1,3) << "\n";

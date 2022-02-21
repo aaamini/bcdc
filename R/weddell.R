@@ -121,5 +121,25 @@ pheatmap(A[idx, idx]
          , show_rownames = F, show_colnames = F
          , annotation_legend = F, legend = F)
 
--2 * nett::eval_dcsbm_bic(A, as.integer(Z_true), length(unique(Z_true)), poi = F)
--2 * nett::eval_dcsbm_bic(A, Z_bcdc, length(unique(Z_bcdc)), poi = F)
+
+Z_true = as.integer(Z_true)
+Z_bcdc = sort_labels(Z_bcdc)
+source("R/bic.R")
+get_sbm_bic(A, Z_true, "approx")
+get_sbm_bic(A, Z_true, "exact")
+get_sbm_bic(A, Z_bcdc, "approx")
+get_sbm_bic(A, Z_bcdc, "exact")
+get_sbm_bic(A, Z_SC)
+get_sbm_bic(A, Z_casc)
+get_sbm_bic(A, Z_bsbm)
+
+# We can remove the rest including R/other_bic.R
+source("R/other_bic.R")
+sbm_bic(A, z_tru)
+sbm_bic(A, z_bcdc)
+
+# -2 * nett::eval_dcsbm_bic(A, as.integer(Z_true), length(unique(Z_true)), poi = F)
+# -2 * nett::eval_dcsbm_bic(A, Z_bcdc, length(unique(Z_bcdc)), poi = F)
+
+
+
