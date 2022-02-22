@@ -5,13 +5,12 @@ library(NMI)
 library(ggplot2)
 library(scales)
 
-setwd("/project/sand/njosephs/BCDC/")
-
 # Functions ----
 Rcpp::sourceCpp("./src/SBM.cpp", verbose = T)
 Rcpp::sourceCpp("./src/CovarSBM.cpp", verbose = T)
 source("./R/inference.R")
 source("./R/CASC/cascTuningMethods.R")
+source("R/bic.R")
 
 mytriangle <- function(coords, v = NULL, params) {
   vertex.color <- params("vertex", "color")
@@ -89,11 +88,21 @@ bsbm <- new(SBM, A, K, alpha = 1, beta = 1)
 Z_bsbm <- get_map_labels(bsbm$run_gibbs(n_iter))$z_map
 
 # Results ----
+
+# NMI
 nmi_wrapper(Z_true, Z_bcdc)
 nmi_wrapper(Z_true, Z_casc)
 nmi_wrapper(Z_true, Z_kmeans)
 nmi_wrapper(Z_true, Z_SC)
 nmi_wrapper(Z_true, Z_bsbm)
+
+# BIC
+get_sbm_bic(A, as.integer(Z_true))
+get_sbm_bic(A, sort_labels(Z_bcdc))
+get_sbm_bic(A, Z_casc)
+get_sbm_bic(A, Z_kmeans)
+get_sbm_bic(A, Z_SC)
+get_sbm_bic(A, Z_bsbm)
 
 G <- graph_from_adjacency_matrix(A, mode = "undirected")
 
