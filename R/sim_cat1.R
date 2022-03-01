@@ -244,8 +244,7 @@ for (tt in seq_len(nrow(grid))) {
       Cov <- sim$Cov
       simnum <- sim$num
       
-      Z_true <- cbind(seq_len(n)
-                      , c(rep(1, simnum[1]), rep(2, simnum[2]), rep(3, simnum[3])))
+      Z_true <- rep(1:K, simnum)
       
       # BCDC
       Z_bcdc <- bcdc(as.matrix(A), Cov, burn = .1*n_iter, iter = n_iter)
@@ -264,11 +263,11 @@ for (tt in seq_len(nrow(grid))) {
       bsbm <- new(SBM, A, K, alpha = 1, beta = 1)
       Z_bsbm <- get_map_labels(bsbm$run_gibbs(n_iter))$z_map
       
-      return(c(NMI(Z_true, cbind(seq_len(n), Z_bcdc))
-               , NMI(Z_true, cbind(seq_len(n), Z_casc))
-               , NMI(Z_true, cbind(seq_len(n), Z_kmeans))
-               , NMI(Z_true, cbind(seq_len(n), Z_SC))
-               , NMI(Z_true, cbind(seq_len(n), Z_bsbm))))
+      return(c(nmi_wrapper(Z_true, Z_bcdc)
+               , nmi_wrapper(Z_true, Z_casc)
+               , nmi_wrapper(Z_true, Z_kmeans)
+               , nmi_wrapper(Z_true, Z_SC)
+               , nmi_wrapper(Z_true, Z_bsbm)))
       
     })
   )
