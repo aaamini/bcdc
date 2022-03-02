@@ -1,0 +1,32 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  BCDC model for community detection with node
+  covariates 
+message: >-
+  Please cite the paper "Bayesian Community Detection
+  For Networks With Covariates"
+type: software
+authors:
+  - given-names: Luyi
+    family-names: Shen
+    email: lshen4@nd.edu
+    affiliation: University of Notre Dame
+  - given-names: Arash A.
+    family-names: Amini
+    email: aaamini@ucla.edu
+    affiliation: UCLA
+    orcid: 'https://orcid.org/0000-0002-2808-8310'
+  - given-names: Nathaniel 
+    family-names: Josephs
+    affiliation: Yale School of Public Health
+    email: nathaniel.josephs@yale.edu
+  - given-names: Lizhen
+    family-names: Lin
+    email: lizhen.lin@nd.edu
+    affiliation: University of Notre Dame
+doi: 
+date-released: 2022-3-2
+url: "https://github.com/aaamini/covar-sbm"
