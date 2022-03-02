@@ -1,4 +1,4 @@
-# covar-sbm
+# The BCDC modoel for community detection for networks with covariates
 
 
 This repository contains code supporting the text "Bayesian community detection for networks with covariates"
