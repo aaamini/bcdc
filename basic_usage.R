@@ -12,7 +12,8 @@ A <- nett::fast_sbm(z_tru, eta)
 Mu <- rbind(c(1.5, 0), c(-1.5,0))
 X <- do.call(cbind, lapply(1:ncol(Mu), function(j) rnorm(n, mean = Mu[z_tru,j])))
 
-Rcpp::sourceCpp("./src/CovarSBM.cpp", verbose = T) # Compile the C++ code for BCDC model (once per session is enough.)
+# Rcpp::sourceCpp("./src/CovarSBM.cpp", verbose = T) # Compile the C++ code for BCDC model (once per session is enough.)
+library(bcdc)
 alpha <- beta <- 1
 dp_concent <- 10
 bcdc_model <- new(CovarSBM, A, alpha, beta, dp_concent) # Create the model as an S4 object
