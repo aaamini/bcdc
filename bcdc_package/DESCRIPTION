@@ -1,0 +1,39 @@
+Package: bcdc
+Type: Package
+Title: Bayesian community detection for networks with covariates
+Version: 0.5.0
+Authors@R: 
+    c(
+        person(given = "Luyi",
+           family = "Shen",
+           role = c("aut")
+        ),
+        person(given = "Arash A.",
+           family = "Amini",
+           role = c("aut","cre"),
+           email = "aaamini@ucla.edu",
+           comment = c(ORCID = "0000-0002-2808-8310")
+        ),
+        person(given = "Nathaniel",
+           family = "Josephs",
+           role = c("aut")
+        ),
+        person(given = "Lizhen",
+           family = "Lin",
+           role = c("aut")
+        )
+    )
+Maintainer: Arash A. Amini <aaamini@ucla.edu>
+Description: An implementation of the a Bayesian community detection model for networks with covariates.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.1
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
+Imports: 
+    Rcpp
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

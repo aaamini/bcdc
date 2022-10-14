@@ -131,3 +131,19 @@ pheatmap(A[idx, idx]
          , annotation_names_row = F
          , show_rownames = F, show_colnames = F
          , annotation_legend = F, legend = F)
+
+
+
+
+# library(readr)
+# V(g)$group = as.integer(Z_true)
+# g1 = nett::extract_largest_cc(g)
+# coord = layout_with_fr(g1) %>% scale
+# write_csv(data.frame(id = V(g1)$name, group = V(g1)$group, 
+#                      degree = degree(g1),
+#                      xi=coord[,1], yi=coord[,2]), 'nodes.csv')
+# 
+# edge_list = data.frame(igraph::as_edgelist(g1))
+# colnames(edge_list) = c("source","target")
+# edge_list$strength = 1 # E(g1)$width
+# write_csv(edge_list, 'links.csv')
