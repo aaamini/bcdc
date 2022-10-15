@@ -3,7 +3,7 @@
 10/21/22 Update:
 There is now an R package `bcdc`. To install it use:
 ```r
-devtools::install_github("aaamini/bcdc", subdir = "bcdc_package")
+devtools::install_github("aaamini/bcdc/bcdc_package")
 ```
 
 ---
