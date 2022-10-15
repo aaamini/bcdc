@@ -1,16 +1,11 @@
+#ifndef C6DA5422_E96D_41E0_9027_9D4C4F0AF4E1
+#define C6DA5422_E96D_41E0_9027_9D4C4F0AF4E1
 #ifndef __SBM__
 #define __SBM__
 #include <RcppArmadillo.h>
 
 #include "BasicSBM.h"
-
-struct BetaParameters {
-    double alpha;
-    double beta;
-
-    BetaParameters() :alpha{1}, beta{1} {};
-    BetaParameters(const double a, const double b) :alpha{a}, beta{b} {};
-};
+#include "BetaParameters.h"
 
 class SBM : public BasicSBM {
     public: 
@@ -38,3 +33,6 @@ class SBM : public BasicSBM {
 
 
 #endif /* __SBM__ */
+
+
+#endif /* C6DA5422_E96D_41E0_9027_9D4C4F0AF4E1 */

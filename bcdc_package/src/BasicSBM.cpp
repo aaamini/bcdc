@@ -259,25 +259,25 @@ void BasicSBM::update_blk_sums_and_sizes() {
 //     mynsbm.run_gibbs(100);
 // }
 
-RCPP_MODULE(basic_sbm_module) {
-      class_<BasicSBM>("BasicSBM")
-      .constructor<arma::sp_mat, int>()
-      .field("A", &BasicSBM::A)
-      .field("K", &BasicSBM::K)
-      .field("n", &BasicSBM::n)
-      .field("z", &BasicSBM::z)
-      .field("M", &BasicSBM::M)
-      .field("N", &BasicSBM::N)
-      .method("set_z_to_random_labels", &BasicSBM::set_z_to_random_labels)
-      .method("update_blk_sums_and_sizes", &BasicSBM::update_blk_sums_and_sizes)
-      .method("get_label_freq", &BasicSBM::get_label_freq)
-      .method("get_label_freq_except", &BasicSBM::get_label_freq_except)
-      .method("col_compress", &BasicSBM::col_compress)
-//      .method("print", &BasicSBM::print)
-    //   .method("update_z_element", &BasicSBM::update_z_element)
-    //   .method("run_gibbs", &BasicSBM::run_gibbs)
-    //   .method("update_pri", &BasicSBM::update_pri)
-      ;
-};
+// RCPP_MODULE(basic_sbm_module) {
+//       class_<BasicSBM>("BasicSBM")
+//       .constructor<arma::sp_mat, int>()
+//       .field("A", &BasicSBM::A)
+//       .field("K", &BasicSBM::K)
+//       .field("n", &BasicSBM::n)
+//       .field("z", &BasicSBM::z)
+//       .field("M", &BasicSBM::M)
+//       .field("N", &BasicSBM::N)
+//       .method("set_z_to_random_labels", &BasicSBM::set_z_to_random_labels)
+//       .method("update_blk_sums_and_sizes", &BasicSBM::update_blk_sums_and_sizes)
+//       .method("get_label_freq", &BasicSBM::get_label_freq)
+//       .method("get_label_freq_except", &BasicSBM::get_label_freq_except)
+//       .method("col_compress", &BasicSBM::col_compress)
+// //      .method("print", &BasicSBM::print)
+//     //   .method("update_z_element", &BasicSBM::update_z_element)
+//     //   .method("run_gibbs", &BasicSBM::run_gibbs)
+//     //   .method("update_pri", &BasicSBM::update_pri)
+//       ;
+// };
 
-RCPP_EXPOSED_CLASS(BasicSBM);
+// RCPP_EXPOSED_CLASS(BasicSBM);

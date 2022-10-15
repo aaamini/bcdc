@@ -125,8 +125,6 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP _rcpp_module_boot_basic_sbm_module();
-RcppExport SEXP _rcpp_module_boot_covar_sbm_module();
 RcppExport SEXP _rcpp_module_boot_sbm_module();
 
 static const R_CallMethodDef CallEntries[] = {
@@ -140,8 +138,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_bcdc_rgamma_vec", (DL_FUNC) &_bcdc_rgamma_vec, 1},
     {"_bcdc_rbeta_vec", (DL_FUNC) &_bcdc_rbeta_vec, 2},
     {"_bcdc_rdirichlet", (DL_FUNC) &_bcdc_rdirichlet, 1},
-    {"_rcpp_module_boot_basic_sbm_module", (DL_FUNC) &_rcpp_module_boot_basic_sbm_module, 0},
-    {"_rcpp_module_boot_covar_sbm_module", (DL_FUNC) &_rcpp_module_boot_covar_sbm_module, 0},
     {"_rcpp_module_boot_sbm_module", (DL_FUNC) &_rcpp_module_boot_sbm_module, 0},
     {NULL, NULL, 0}
 };

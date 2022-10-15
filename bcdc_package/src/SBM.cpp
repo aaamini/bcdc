@@ -239,34 +239,34 @@ arma::umat SBM::run_gibbs(const int niter) {
 //     mynsbm.run_gibbs(100);
 // }
 
-RCPP_MODULE(sbm_module) {
-    class_<BasicSBM>("BasicSBM")
-      .constructor<arma::sp_mat, int>()
-      .field("A", &BasicSBM::A)
-      .field("K", &BasicSBM::K)
-      .field("n", &BasicSBM::n)
-      .field("z", &BasicSBM::z)
-      .field("M", &BasicSBM::M)
-      .field("N", &BasicSBM::N)
-      .method("set_z_to_random_labels", &BasicSBM::set_z_to_random_labels)
-      .method("update_blk_sums_and_sizes", &BasicSBM::update_blk_sums_and_sizes)
-      .method("get_label_freq", &BasicSBM::get_label_freq)
-      .method("get_label_freq_except", &BasicSBM::get_label_freq_except)
-      .method("col_compress", &BasicSBM::col_compress)
-    ;
+// RCPP_MODULE(sbm_module) {
+//     class_<BasicSBM>("BasicSBM")
+//       .constructor<arma::sp_mat, int>()
+//       .field("A", &BasicSBM::A)
+//       .field("K", &BasicSBM::K)
+//       .field("n", &BasicSBM::n)
+//       .field("z", &BasicSBM::z)
+//       .field("M", &BasicSBM::M)
+//       .field("N", &BasicSBM::N)
+//       .method("set_z_to_random_labels", &BasicSBM::set_z_to_random_labels)
+//       .method("update_blk_sums_and_sizes", &BasicSBM::update_blk_sums_and_sizes)
+//       .method("get_label_freq", &BasicSBM::get_label_freq)
+//       .method("get_label_freq_except", &BasicSBM::get_label_freq_except)
+//       .method("col_compress", &BasicSBM::col_compress)
+//     ;
 
-    class_<SBM>("SBM")
-        .derives<BasicSBM>("BasicSBM")
-        .constructor<arma::sp_mat, int, double, double>()
-        .field("eta", &SBM::eta)
-        .method("update_eta", &SBM::update_eta)
-        .method("set_beta_params", &SBM::set_beta_params)
-    //      .method("print", &SBM::print)
-        .method("update_z_element", &SBM::update_z_element)
-        .method("run_gibbs", &SBM::run_gibbs)
-        .method("update_eta", &SBM::update_eta)
-        .method("update_pri", &SBM::update_pri)
-    ;
-};
+//     class_<SBM>("SBM")
+//         .derives<BasicSBM>("BasicSBM")
+//         .constructor<arma::sp_mat, int, double, double>()
+//         .field("eta", &SBM::eta)
+//         .method("update_eta", &SBM::update_eta)
+//         .method("set_beta_params", &SBM::set_beta_params)
+//     //      .method("print", &SBM::print)
+//         .method("update_z_element", &SBM::update_z_element)
+//         .method("run_gibbs", &SBM::run_gibbs)
+//         .method("update_eta", &SBM::update_eta)
+//         .method("update_pri", &SBM::update_pri)
+//     ;
+// };
 
-RCPP_EXPOSED_CLASS(SBM);
+// RCPP_EXPOSED_CLASS(SBM);

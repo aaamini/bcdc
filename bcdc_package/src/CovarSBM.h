@@ -6,21 +6,7 @@
 #include <RcppArmadillo.h>
 
 #include "BasicSBM.h"
-
-struct BetaParameters {
-    double alpha;
-    double beta;
-
-    BetaParameters() :alpha{1}, beta{1} {};
-    BetaParameters(const double a, const double b) :alpha{a}, beta{b} {};
-
-    void set(const double a, const double b)
-    {
-        alpha = a;
-        beta = b;
-    }
-};
-
+#include "BetaParameters.h"
 
 
 class CovarSBM : public BasicSBM {
