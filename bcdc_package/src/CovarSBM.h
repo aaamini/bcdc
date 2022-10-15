@@ -1,3 +1,5 @@
+#ifndef B1EA7B78_E870_42A5_9166_3BC22BF3327A
+#define B1EA7B78_E870_42A5_9166_3BC22BF3327A
 #ifndef __COVARSBM__
 #define __COVARSBM__
 
@@ -77,6 +79,7 @@ class CovarSBM : public BasicSBM {
 };
 
 
-
-
 #endif /* __COVARSBM__ */
+
+
+#endif /* B1EA7B78_E870_42A5_9166_3BC22BF3327A */

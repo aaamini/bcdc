@@ -12,7 +12,7 @@ BasicSBM::BasicSBM(const arma::sp_mat& A_)
     n = A.n_rows;
 }
 
-BasicSBM::BasicSBM(const arma::sp_mat& A_, const int K) : K{K} 
+BasicSBM::BasicSBM(const arma::sp_mat& A_, const int K) : K{K}
 {
     // initialize and allocate variables
     A = A_;
@@ -24,12 +24,12 @@ BasicSBM::BasicSBM(const arma::sp_mat& A_, const int K) : K{K}
     // Rcpp::print(wrap( blk_compressions[1]));
 }
 
-void BasicSBM::set_z_to_random_labels() 
+void BasicSBM::set_z_to_random_labels()
 {
     z = sample_int_vec(K, n);
 }
 
-arma::vec BasicSBM::col_compress(const int& col_idx) 
+arma::vec BasicSBM::col_compress(const int& col_idx)
 {
     arma::vec b(K, arma::fill::zeros);
     for (arma::sp_mat::const_col_iterator it = A.begin_col(col_idx); it != A.end_col(col_idx); ++it) {
@@ -38,8 +38,8 @@ arma::vec BasicSBM::col_compress(const int& col_idx)
     return b;
 }
 
-arma::uvec BasicSBM::get_label_freq() 
-{ 
+arma::uvec BasicSBM::get_label_freq()
+{
     arma::uvec freq(K, arma::fill::zeros);
     for (int i = 0; i < n; i++) {
         freq(z(i))++;
@@ -47,7 +47,7 @@ arma::uvec BasicSBM::get_label_freq()
     return freq;
 }
 
-arma::uvec BasicSBM::get_label_freq_except(const int& i) { 
+arma::uvec BasicSBM::get_label_freq_except(const int& i) {
     arma::uvec freq = get_label_freq();
     freq(z(i))--;
     return freq;
@@ -61,7 +61,7 @@ void BasicSBM::update_blk_sums_and_sizes() {
     arma::sp_mat::const_iterator it     = A.begin();
     arma::sp_mat::const_iterator it_end = A.end();
 
-    M = arma::mat(K, K, arma::fill::zeros); 
+    M = arma::mat(K, K, arma::fill::zeros);
     for(; it != it_end; ++it) {
         M(z(it.row()), z(it.col())) += (*it);
     }
@@ -69,8 +69,8 @@ void BasicSBM::update_blk_sums_and_sizes() {
     N = zc * zc.t() - arma::diagmat(zc);
 
     // assumes that the diagonal of At is zero,  otherwise have to remove diag. first
-    M.diag() /= 2; 
-    N.diag() /= 2;     
+    M.diag() /= 2;
+    N.diag() /= 2;
 }
 
 
@@ -89,12 +89,12 @@ void BasicSBM::update_blk_sums_and_sizes() {
 
 // arma::umat BasicSBM::run_gibbs(const int niter) {
 //     // Run full Gibbs updates for "niter" iterations and record label history
-    
+
 //     arma::umat z_hist(n, niter+1);
-//     z_hist.col(0) = z + 1;       
-    
+//     z_hist.col(0) = z + 1;
+
 //     // comp_count_tensors();
-//     for (int iter = 0; iter < niter; iter++) {   
+//     for (int iter = 0; iter < niter; iter++) {
 //         update_eta();
 //         update_pri();
 //         for (int i = 0; i < n; i++) {
@@ -105,7 +105,7 @@ void BasicSBM::update_blk_sums_and_sizes() {
 //     } // iter
 
 //     return z_hist;
-//     // return Rcpp::List::create( 
+//     // return Rcpp::List::create(
 //     //     Rcpp::Named("z") = z_hist,
 //     //     Rcpp::Named("xi") = xi_hist
 //     // );
@@ -121,21 +121,21 @@ void BasicSBM::update_blk_sums_and_sizes() {
 //         arma::mat eta;
 //         arma::mat u;
 //         arma::mat v;
-//         arma::vec pri; 
+//         arma::vec pri;
 
 //         arma::mat M;
 //         arma::umat N;
-        
+
 //         BetaParameters beta_params;
 //         // double w0;
 //         // double pi0;
 
 //         // arma::vec z_log_prob_record; // for diagnostics
 
-//         BasicSBM(const arma::sp_mat& A_, 
-//             // const arma::uvec z_init, 
+//         BasicSBM(const arma::sp_mat& A_,
+//             // const arma::uvec z_init,
 //             const int K,
-//             const double alpha_eta, 
+//             const double alpha_eta,
 //             const double beta_eta) : K{K} {
 
 //             // initialize and allocate variables
@@ -145,7 +145,7 @@ void BasicSBM::update_blk_sums_and_sizes() {
 //             beta_params.beta = beta_eta;
 //             set_z_to_random_labels();
 
-//             eta = arma::mat(K, K, arma::fill::zeros);   
+//             eta = arma::mat(K, K, arma::fill::zeros);
 //             u = arma::mat(K, K, arma::fill::zeros);
 //             v = arma::mat(K, K, arma::fill::zeros);
 //             pri = arma::vec(K, arma::fill::zeros);
@@ -158,18 +158,18 @@ void BasicSBM::update_blk_sums_and_sizes() {
 
 //         void set_beta_params(const double alpha_eta, const double beta_eta) {
 //             beta_params.alpha = alpha_eta;
-//             beta_params.beta = beta_eta;    
+//             beta_params.beta = beta_eta;
 //         }
 
 //         void set_z_to_random_labels() {
 //              z = sample_int_vec(K, n);
 //         }
 
-//         void update_eta() {    
+//         void update_eta() {
 //             // Update the eta-related tensors
 //             // List out = comp_blk_sums_and_sizes(A, z, K);
 //             // arma::mat lambda = out["lambda"];
-//             // arma::umat NN = out["NN"]; 
+//             // arma::umat NN = out["NN"];
 //             // eta = symmat_rbeta(lambda + beta_params.alpha, NN - lambda + beta_params.beta);
 //             update_blk_sums_and_sizes();
 
@@ -199,7 +199,7 @@ void BasicSBM::update_blk_sums_and_sizes() {
 //             arma::sp_mat::const_iterator it     = A.begin();
 //             arma::sp_mat::const_iterator it_end = A.end();
 
-//             M = arma::mat(K, K, arma::fill::zeros); 
+//             M = arma::mat(K, K, arma::fill::zeros);
 //             for(; it != it_end; ++it) {
 //                 M(z(it.row()), z(it.col())) += (*it);
 //             }
@@ -207,8 +207,8 @@ void BasicSBM::update_blk_sums_and_sizes() {
 //             N = zc * zc.t() - arma::diagmat(zc);
 
 //             // assumes that the diagonal of At is zero,  otherwise have to remove diag. first
-//             M.diag() /= 2; 
-//             N.diag() /= 2;     
+//             M.diag() /= 2;
+//             N.diag() /= 2;
 //         }
 
 
@@ -221,16 +221,16 @@ void BasicSBM::update_blk_sums_and_sizes() {
 
 //             z(i) = sample_index(safe_exp(log_prob));
 //         }
-        
-       
+
+
 //         arma::umat run_gibbs(const int niter) {
 //             // Run full Gibbs updates for "niter" iterations and record label history
-            
+
 //             arma::umat z_hist(n, niter+1);
-//             z_hist.col(0) = z + 1;       
-            
+//             z_hist.col(0) = z + 1;
+
 //             // comp_count_tensors();
-//             for (int iter = 0; iter < niter; iter++) {   
+//             for (int iter = 0; iter < niter; iter++) {
 //                 update_eta();
 //                 update_pri();
 //                 for (int i = 0; i < n; i++) {
@@ -241,7 +241,7 @@ void BasicSBM::update_blk_sums_and_sizes() {
 //             } // iter
 
 //             return z_hist;
-//             // return Rcpp::List::create( 
+//             // return Rcpp::List::create(
 //             //     Rcpp::Named("z") = z_hist,
 //             //     Rcpp::Named("xi") = xi_hist
 //             // );
@@ -280,4 +280,4 @@ RCPP_MODULE(basic_sbm_module) {
       ;
 };
 
-RCPP_EXPOSED_CLASS(BasicSBM);
+// RCPP_EXPOSED_CLASS(BasicSBM);

@@ -46,3 +46,4 @@ bcdc_model$z # current model labels
 # nmi_seq = apply(zout, 2, function(z) nett::compute_mutual_info(z,z_tru))
 # plot(1:(niter+1), nmi_seq,
 #      ylab = "NMI", xlab = "iteration", pch= 16)
+
