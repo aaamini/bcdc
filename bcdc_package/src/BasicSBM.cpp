@@ -280,4 +280,4 @@ RCPP_MODULE(basic_sbm_module) {
       ;
 };
 
-// RCPP_EXPOSED_CLASS(BasicSBM);
+RCPP_EXPOSED_CLASS(BasicSBM);

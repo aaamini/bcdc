@@ -269,4 +269,4 @@ RCPP_MODULE(sbm_module) {
     ;
 };
 
-// RCPP_EXPOSED_CLASS(SBM);
+RCPP_EXPOSED_CLASS(SBM);

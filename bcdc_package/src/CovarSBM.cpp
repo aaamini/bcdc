@@ -472,4 +472,4 @@ RCPP_MODULE(covar_sbm_module) {
     ;
 };
 
-// RCPP_EXPOSED_CLASS(CovarSBM);
+RCPP_EXPOSED_CLASS(CovarSBM);
