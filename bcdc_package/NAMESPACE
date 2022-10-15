@@ -3,6 +3,6 @@
 export(BasicSBM)
 export(CovarSBM)
 export(SBM)
-importFrom(Rcpp,loadModule)
-importFrom(Rcpp,sourceCpp)
+import(Rcpp)
+import(methods)
 useDynLib(bcdc, .registration = TRUE)

@@ -1,8 +1,6 @@
-## usethis namespace: start
 #' @useDynLib bcdc, .registration = TRUE
-#' @importFrom Rcpp sourceCpp loadModule
+#' @import Rcpp methods
 "_PACKAGE"
-# @importFrom Rcpp sourceCpp
-## usethis namespace: end
+
 
 
