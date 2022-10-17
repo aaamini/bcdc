@@ -3,10 +3,10 @@ library(pbmcapply)
 library(tictoc)
 library(dplyr)
 library(ggplot2)
+# devtools::install_github("aaamini/bcdc/bcdc_package")
+library(bcdc)
 
 # Functions ----
-Rcpp::sourceCpp("./src/SBM.cpp", verbose = T)
-Rcpp::sourceCpp("./src/CovarSBM.cpp", verbose = T)
 source("./R/inference.R")
 source("./R/CASC/cascTuningMethods.R")
 

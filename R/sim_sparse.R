@@ -2,135 +2,130 @@
 library(pbmcapply)
 library(NMI)
 library(tidyverse)
+# devtools::install_github("aaamini/bcdc/bcdc_package")
+library(bcdc)
 
 # Functions ----
-Rcpp::sourceCpp("./src/SBM.cpp", verbose = T)
-Rcpp::sourceCpp("./src/CovarSBM.cpp", verbose = T)
 source("./R/inference.R")
 source("./R/CASC/cascTuningMethods.R")
 
-simdata <- function(n) {
+simdata <- function(n, p, r, beta) {
   # n       : number of nodes
+  # p       : prob of edge within cluster
+  # r       : p*r = prob of edge between clusters
+  # beta    : homophily parameter
   
   require(igraph)
   require(abind)
   
-  # sample SBM ----
-  n1 <- floor(n*3/12)
-  n2 <- floor(n*4/12)
+  n1 <- n2 <- floor(n*1/3)
   n3 <- n - n1 - n2
   
-  P <- cbind(c(1.6, 1.2, 0.16)
-             , c(1.2, 1.6, 0.02)
-             , c(0.16, 0.02, 1.2)) * 0.01
-  A <- get.adjacency(sample_sbm(n, P, c(n1, n2, n3)))
+  community <- rep(0:2, c(n1, n2, n3))
+  feature <- sample(0:1, n, replace = TRUE)
   
-  # sample features ----
-  feature <- cbind(c(rnorm(n1, 0, 1), rnorm(n2, -1, 1), rnorm(n3, 1, 1))
-                   , c(rnorm(n1, 2, 1), rnorm(n2, -0.8, 1), rnorm(n3, -0.8, 1))
-                   , matrix(rnorm(n*98, 0, 1), n, 98)) # noise
+  A <- matrix(0, n, n)
+  for (i in 1:(n-1)) {
+    for (j in (i+1):n) {
+      p_ij <- ifelse(community[i] == community[j], p, p*r) +
+        beta * (feature[i] == feature[j])
+      
+      A[i, j] <- sample(c(0, 1), 1, prob = c(1-p_ij, p_ij))
+    }
+  }
   
-  return(list(A = A, Cov = feature, num = c(n1, n2, n3)))
+  A[lower.tri(A)] <- t(A)[lower.tri(A)]
+  
+  num <- data.frame(community, feature) %>%
+    mutate(cluster = group_indices(., community, feature)) %>%
+    select(cluster)
+  
+  return(list(A = as(A, "dgCMatrix"), Cov = cbind(feature), num = num$cluster))
 }
 
 # Simulation ----
 K <- 3
-n <- 800
-n_iter <- 1000
+n <- 150
+p <- 0.3
+r <- .35
+beta <- seq(-.1, .1, length.out = 15)
+n_iter <- 1500
 n_reps <- n_cores <- detectCores()
 
-results <- as.data.frame(matrix(nrow = n_reps, ncol = 10))
-res_names <- c("bcdc", "casc", "kmeans", "SC", "bsbm")
-names(results) <- c(res_names, paste0("time_", res_names))
+grid <- expand.grid(n, p, r, beta)
+names(grid) <- c("n", "p", "r", "beta")
 
-res <- simplify2array(
-  pbmclapply(seq_len(n_reps), mc.cores = n_cores, function(i)
-  {
-    set.seed(i)
-    
-    sim <- simdata(n)
-    A <- sim$A
-    Cov <- sim$Cov
-    simnum <- sim$num
-    
-    Z_true <- rep(1:K, simnum)
-    
-    # BCDC
-    start.time <- Sys.time()
-    bcdc <- new(CovarSBM, A, alpha = 1, beta = 1, dp_concent = 10)
-    bcdc$set_continuous_features(Cov)
-    Z_bcdc <- get_map_labels(bcdc$run_gibbs(n_iter))$z_map
-    time_bcdc <- Sys.time() - start.time
-    
-    # CASC
-    start.time <- Sys.time()
-    Z_casc <- kmeans(getCascAutoSvd(A, Cov, K, enhancedTuning = TRUE)$singVec
-                     , centers = K, nstart = 20)$cluster
-    time_casc <- Sys.time() - start.time
-    
-    # k-means
-    start.time <- Sys.time()
-    Z_kmeans <- kmeans(Cov, centers = K, nstart = 20)$cluster
-    time_kmeans <- Sys.time() - start.time
-    
-    # SC
-    start.time <- Sys.time()
-    Z_SC <- nett::spec_clust(A, K)
-    time_SC <- Sys.time() - start.time
-    
-    # BSBM
-    start.time <- Sys.time()
-    bsbm <- new(SBM, A, K, alpha = 1, beta = 1)
-    Z_bsbm <- get_map_labels(bsbm$run_gibbs(n_iter))$z_map
-    time_bsbm <- Sys.time() - start.time
-    
-    return(c(nmi_wrapper(Z_true, Z_bcdc)
-             , nmi_wrapper(Z_true, Z_casc)
-             , nmi_wrapper(Z_true, Z_kmeans)
-             , nmi_wrapper(Z_true, Z_SC)
-             , nmi_wrapper(Z_true, Z_bsbm)
-             , time_bcdc
-             , time_casc
-             , time_kmeans
-             , time_SC
-             , time_bsbm))
-    
-  })
-)
+results <- as.data.frame(matrix(nrow = nrow(grid) * n_reps, ncol = 8))
+names(results) <- c("n", "p", "r", "beta"
+                    , "bcdc", "casc", "SC", "bsbm")
 
-results[, "bcdc"] <- unlist(res[1, ])
-results[, "casc"] <- unlist(res[2, ])
-results[, "kmeans"] <- unlist(res[3, ])
-results[, "SC"] <- unlist(res[4, ])
-results[, "bsbm"] <- unlist(res[5, ])
-results[, "time_bcdc"] <- unlist(res[6, ])
-results[, "time_casc"] <- unlist(res[7, ])
-results[, "time_kmeans"] <- unlist(res[8, ])
-results[, "time_SC"] <- unlist(res[9, ])
-results[, "time_bsbm"] <- unlist(res[10, ])
+for (tt in seq_len(nrow(grid))) {
+  
+  print(tt)
+  
+  n <- grid[tt, "n"]
+  p <- grid[tt, "p"]
+  r <- grid[tt, "r"]
+  beta <- grid[tt, "beta"]
+  
+  res <- simplify2array(
+    pbmclapply(seq_len(n_reps), mc.cores = n_cores, function(i)
+    {
+      set.seed(i)
+      
+      sim <- simdata(n, p, r, beta)
+      A <- sim$A
+      Cov <- sim$Cov
+      Z_true <- sim$num
+      
+      # BCDC
+      bcdc_model <- new(CovarSBM, A, alpha = 1, beta = 1, dp_concent = 10)
+      bcdc_model$set_discrete_features(Cov)
+      Z_bcdc <- get_map_labels(bcdc_model$run_gibbs(n_iter))$z_map
+      
+      # CASC
+      Z_casc <- kmeans(getCascAutoSvd(A, Cov, 1, enhancedTuning = TRUE)$singVec
+                       , centers = 2*K, nstart = 20)$cluster
+      
+      # SC
+      Z_SC <- nett::spec_clust(A, 2*K)
+      
+      # BSBM
+      bsbm <- new(SBM, A, 2*K, alpha = 1, beta = 1)
+      Z_bsbm <- get_map_labels(bsbm$run_gibbs(n_iter))$z_map
+      
+      return(c(nmi_wrapper(Z_true, Z_bcdc)
+               , nmi_wrapper(Z_true, Z_casc)
+               , nmi_wrapper(Z_true, Z_SC)
+               , nmi_wrapper(Z_true, Z_bsbm)))
+      
+    })
+  )
+  
+  ind <- seq_len(n_reps) + n_reps * (tt - 1)
+  
+  results[ind, "n"] <- n
+  results[ind, "p"] <- p
+  results[ind, "r"] <- r
+  results[ind, "beta"] <- beta
+  results[ind, "bcdc"] <- unlist(res[1, ])
+  results[ind, "casc"] <- unlist(res[2, ])
+  results[ind, "SC"] <- unlist(res[3, ])
+  results[ind, "bsbm"] <- unlist(res[4, ])
+  
+}
 
 # Visualize ----
-res <- tibble(results[, 1:5]) %>% 
-  pivot_longer(everything(), names_to = "method", values_to = "nmi") %>% 
-  mutate(method = factor(method))
+res <- tibble(results) %>% 
+  pivot_longer(-c(n,p,r,beta), names_to = "method", values_to = "nmi") %>% 
+  mutate(method = factor(method)) %>% 
+  mutate(r = signif(r, 1))
 
 levels(res$method) <- list(BCDC = "bcdc", BSBM = "bsbm" , CASC = "casc", SC = "SC",  `k-means` = "kmeans")
 
-res %>% 
-  ggplot(aes(x = method, y = nmi, fill = method)) +
+res %>%
+  ggplot(aes(x = factor(round(beta, 2)), y = nmi, fill = method)) +
   geom_boxplot() +
-  ylab("NMI") + theme(legend.position = "none") + xlab("") +
-  theme_minimal(base_size = 15)
-
-res_time <- tibble(results[, 6:10]) %>% 
-  pivot_longer(everything(), names_to = "method", values_to = "time") %>% 
-  mutate(method = factor(method))
-
-levels(res_time$method) <- list(BCDC = "time_bcdc", BSBM = "time_bsbm" , CASC = "time_casc", SC = "time_SC",  `k-means` = "time_kmeans")
-
-res_time %>% 
-  ggplot(aes(x = method, y = time, fill = method)) +
-  geom_boxplot() +
-  ylab("Seconds") + theme(legend.position = "none") + xlab("") +
-  guides(fill = "none") +
+  ylab("NMI") + xlab("beta") +
+  theme(legend.position = "none") +
   theme_minimal(base_size = 15)
