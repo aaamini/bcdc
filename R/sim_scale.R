@@ -31,7 +31,7 @@ simdata <- function(n, p, r, K) {
 }
 
 # Simulation ----
-n <- seq(300, 1000, 50)
+n <- seq(300, 1000, 100)
 p <- 0.3
 r <- .35
 n_iter <- 1500
@@ -142,9 +142,8 @@ res %>%
   ggplot(aes(x = factor(n), y = nmi, fill = method)) +
   geom_boxplot() +
   ylab("NMI") + xlab("n") +
-  theme(legend.position = "none") +
   guides(fill = "none") +
-  theme_minimal(base_size = 20)
+  theme_minimal(base_size = 15)
 
 res_time <- tibble(results[, c(1:4, 10:14)]) %>% 
   pivot_longer(-c(n,p,r,K), names_to = "method", values_to = "time") %>% 
@@ -153,10 +152,9 @@ res_time <- tibble(results[, c(1:4, 10:14)]) %>%
 
 levels(res_time$method) <- list(BCDC = "time_bcdc", BSBM = "time_bsbm" , CASC = "time_casc", SC = "time_SC",  `k-means` = "time_kmeans")
 
-res_time %>%
+res_time %>% 
   ggplot(aes(x = factor(n), y = time, fill = method)) +
   geom_boxplot() +
   ylab("Seconds") + xlab("n") +
-  theme(legend.position = "none") +
   guides(fill = "none") +
-  theme_minimal(base_size = 20)
+  theme_minimal(base_size = 15)

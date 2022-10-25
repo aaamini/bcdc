@@ -19,7 +19,7 @@ dp_concent <- 10
 niter <- 1000
 nreps <- n_cores <- detectCores()
 
-r <- 0.3
+r <- 0.3 # 0.4, 0.5, 0.7
 p <- 0.1
 eta <- matrix(c(p, r*p, r*p, p), nrow = 2)
 
@@ -87,10 +87,7 @@ res <- res %>%
 res %>%
   ggplot(aes(x = as.factor(mu), y = nmi, fill = method)) + 
   geom_boxplot() +
-  theme(legend.background = element_blank()
-        , legend.title = element_blank()
-        , legend.position = c(0.2, 0.4)) +
-  guides(colour = guide_legend(keywidth = 2, keyheight = .75)) +
-  ylab("NMI") + xlab("mu") +
+  guides(fill = "none") +
+  ylab("NMI") + xlab(expression(mu)) +
   labs(title = sprintf("r = %2.1f", r)) +
   theme_minimal(base_size = 15)

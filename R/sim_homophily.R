@@ -47,8 +47,8 @@ simdata <- function(n, p, r, beta) {
 K <- 3
 n <- 150
 p <- 0.3
-r <- .35
-beta <- seq(-.1, .1, length.out = 15)
+r <- .7
+beta <- seq(-.2, .2, by = .05)
 n_iter <- 1500
 n_reps <- n_cores <- detectCores()
 
@@ -126,6 +126,6 @@ levels(res$method) <- list(BCDC = "bcdc", BSBM = "bsbm" , CASC = "casc", SC = "S
 res %>%
   ggplot(aes(x = factor(round(beta, 2)), y = nmi, fill = method)) +
   geom_boxplot() +
-  ylab("NMI") + xlab("beta") +
-  theme(legend.position = "none") +
+  ylab("NMI") + xlab(expression(beta)) +
+  guides(fill = "none") +
   theme_minimal(base_size = 15)
