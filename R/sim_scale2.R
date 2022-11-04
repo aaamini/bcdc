@@ -6,6 +6,7 @@ library(tictoc)
 # devtools::install_github("aaamini/bcdc/bcdc_package")
 library(bcdc)
 
+
 # Functions ----
 source("./R/inference.R")
 source("./R/CASC/cascTuningMethods.R")
@@ -36,7 +37,7 @@ n <- seq(300, 1000, 100)
 p <- 0.3
 r <- .35
 n_iter <- 1500
-n_reps <- n_cores <- detectCores()
+n_reps <- n_cores <- 32 # detectCores()
 
 
 
@@ -109,13 +110,6 @@ res <- res %>%
 
 
 # Visualize ----
-res <- tibble(results[, 1:9]) %>% 
-  pivot_longer(-c(n,p,r,K), names_to = "method", values_to = "nmi") %>% 
-  mutate(method = factor(method)) %>% 
-  mutate(r = signif(r, 1))
-
-levels(res$method) <- list(BCDC = "bcdc", BSBM = "bsbm" , CASC = "casc", SC = "SC",  `k-means` = "kmeans")
-
 res %>%
   ggplot(aes(x = factor(n), y = nmi, fill = method)) +
   geom_boxplot() +
