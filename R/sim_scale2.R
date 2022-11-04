@@ -32,7 +32,7 @@ simdata <- function(n, p, r, K) {
 }
 
 # Simulation ----
-n <- seq(300, 900, 300)
+n <- seq(300, 1000, 100)
 p <- 0.3
 r <- .35
 n_iter <- 1500
