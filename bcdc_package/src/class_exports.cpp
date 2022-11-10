@@ -1,7 +1,9 @@
 #include <RcppArmadillo.h>
 
 #include "CovarSBM.h"
+#include "CovarPSBM.h"
 #include "SBM.h"
+#include "BasicPSBM.h"
 
 RCPP_MODULE(sbm_module) {
   Rcpp::class_<BasicSBM>("BasicSBM")
@@ -17,6 +19,23 @@ RCPP_MODULE(sbm_module) {
     .method("get_label_freq", &BasicSBM::get_label_freq)
     .method("get_label_freq_except", &BasicSBM::get_label_freq_except)
     .method("col_compress", &BasicSBM::col_compress)
+    ;
+
+    Rcpp::class_<BasicPSBM>("BasicPSBM")
+    .constructor<arma::sp_mat, arma::sp_mat, int>()
+    .field("A", &BasicPSBM::A)
+    .field("mask", &BasicPSBM::mask)
+    .field("K", &BasicPSBM::K)
+    .field("n", &BasicPSBM::n)
+    .field("z", &BasicPSBM::z)
+    .field("M", &BasicPSBM::M)
+    .field("N", &BasicPSBM::N)
+    .method("set_z_to_random_labels", &BasicPSBM::set_z_to_random_labels)
+    .method("update_blk_sums_and_sizes", &BasicPSBM::update_blk_sums_and_sizes)
+    .method("get_label_freq", &BasicPSBM::get_label_freq)
+    .method("get_label_freq_except", &BasicPSBM::get_label_freq_except)
+    .method("col_adj_compress", &BasicPSBM::col_adj_compress)
+    .method("col_mask_compress", &BasicPSBM::col_mask_compress)
     ;
 
   Rcpp::class_<SBM>("SBM")
@@ -61,6 +80,38 @@ RCPP_MODULE(sbm_module) {
      .method("set_beta_params", &CovarSBM::set_beta_params)
      .method("resize", &CovarSBM::resize)
      .method("repopulate_from_prior", &CovarSBM::repopulate_from_prior)
+  //      .method("print", &CovarSBM::print)
+  ;
+
+  Rcpp::class_<CovarPSBM>("CovarPSBM")
+    .derives<BasicPSBM>("BasicPSBM")
+    .constructor<arma::sp_mat, arma::sp_mat, int, double, double>()
+    .field("eta", &CovarPSBM::eta)
+    .field("feature_dim", &CovarPSBM::feature_dim)
+    .field("Xc", &CovarPSBM::Xc)
+    .field("xic", &CovarPSBM::xic)
+    .field("Xd", &CovarPSBM::Xd)
+    .field("xid", &CovarPSBM::xid)
+    .field("u", &CovarPSBM::u)
+    .field("v", &CovarPSBM::v)
+    .field("n_cats", &CovarPSBM::n_cats)
+  // .field("max_label", &CovarPSBM::max_label)
+     .field("next_label", &CovarPSBM::next_label)
+     .field("has_cont_features", &CovarPSBM::has_cont_features)
+     .field("has_disc_features", &CovarPSBM::has_disc_features)
+     .field("s2", &CovarPSBM::s2)
+     .field("tau2", &CovarPSBM::tau2)
+     .method("update_eta", &CovarPSBM::update_eta)
+     .method("update_xi", &CovarPSBM::update_xi)
+     .method("update_z_element", &CovarPSBM::update_z_element)
+     .method("run_gibbs", &CovarPSBM::run_gibbs)
+     .method("sample_crp", &CovarPSBM::sample_crp)
+     .method("set_continuous_features", &CovarPSBM::set_continuous_features)
+     .method("set_discrete_features", &CovarPSBM::set_discrete_features)
+     .method("set_gauss_param", &CovarPSBM::set_gauss_param)
+     .method("set_beta_params", &CovarPSBM::set_beta_params)
+     .method("resize", &CovarPSBM::resize)
+     .method("repopulate_from_prior", &CovarPSBM::repopulate_from_prior)
   //      .method("print", &CovarSBM::print)
   ;
 };
