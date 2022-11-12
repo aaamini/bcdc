@@ -15,7 +15,7 @@ out = readMat(sprintf("Data/facebook-ego-%2.2f.mat", train_ratio))
 A = out$A
 M = out$mask # training mask
 Xd = out$features
-test_idx = which(!M)
+test_idx <- which(triu(!M,1))
 image(Xd)
 
 cat(sprintf("Traning density = %2.2f\n", sum(M) / prod(dim(M))))
@@ -28,16 +28,18 @@ image(M)
 image(A)
 
 
-out = RSpectra::svds(Xd, 15)
+out = RSpectra::svds(Xd, 20)
 plot(out$d)
-Xc = out$u[,2, drop=F]
+Xc = out$u[,10, drop=F]
 
 
-mod = new(CovarPSBM, A, M, alpha = 1, beta = 1, dp_concent = 10)
+set.seed(123)
+mod = new(CovarPSBM, A, M, alpha = 1, beta = 10, dp_concent = 10)
+mod$s2 = .1
 # mod = new(CovarSBM, A, alpha = 1, beta = 1, dp_concent = 10)
-mod$set_discrete_features(Xd)
-# mod$set_continuous_features(Xc)
-n_iter = 2000
+# mod$set_discrete_features(Xd)
+mod$set_continuous_features(Xc)
+n_iter = 500
 zmat = mod$run_gibbs(n_iter)
 plot(get_seq_nmi(zmat))
 
@@ -73,6 +75,7 @@ roc3 = roc(A[test_idx], out$ProbAve[test_idx], quiet = T)
 roc3$auc
 PRROC::pr.curve( out$ProbAve[test_idx], weights.class0 = A[test_idx])
 # #yardstick::pr_auc_vec(factor(A[test_idx]), out$ProbAve[test_idx])
+
 
 # mod = new(BasicPSBM, A, M, 3)
 # mod$z
