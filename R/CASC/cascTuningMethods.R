@@ -112,8 +112,7 @@ getTuningRange = function(graphMatrix, covariates, nBlocks) {
   #insure irlba internal representation is large enough
   if(nBlocks > 10) {
     internalDim = 2 * nBlocks
-  }
-  else {
+  } else {
     internalDim = 20
   }
   
@@ -121,7 +120,15 @@ getTuningRange = function(graphMatrix, covariates, nBlocks) {
                          internalDim)$d
   singValCov = svd(covariates, nu = nBlocks)$d
   
-  hmax = singValGraph[1]/singValCov[nBlocks]^2
+  R = length(singValCov)
+  if (R <= nBlocks) {
+    denum = singValCov[R]^2
+  } else {
+    # denum = singValCov[nBlocks]^2
+    denum = singValCov[nBlocks]^2 - singValCov[nBlocks+1]^2
+  }
+  # hmax = singValGraph[1]/singValCov[nBlocks]^2
+  hmax = singValGraph[1]/denum
   
   hmin = (singValGraph[nBlocks] - singValGraph[nBlocks + 1])/singValCov[1]^2
   

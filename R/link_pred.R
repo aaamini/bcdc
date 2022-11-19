@@ -27,18 +27,16 @@ image(A * M)
 image(M)
 image(A)
 
-
 out = RSpectra::svds(Xd, 20)
 plot(out$d)
 Xc = out$u[,10, drop=F]
 
-
 set.seed(123)
-mod = new(CovarPSBM, A, M, alpha = 1, beta = 10, dp_concent = 10)
-mod$s2 = .1
-# mod = new(CovarSBM, A, alpha = 1, beta = 1, dp_concent = 10)
+# mod = new(CovarPSBM, A, M, alpha = 1, beta = 10, dp_concent = 10)
+# mod$s2 = .1
+mod = new(CovarSBM, A, alpha = 1, beta = 1, dp_concent = 10)
 # mod$set_discrete_features(Xd)
-mod$set_continuous_features(Xc)
+# mod$set_continuous_features(Xc)
 n_iter = 500
 zmat = mod$run_gibbs(n_iter)
 plot(get_seq_nmi(zmat))

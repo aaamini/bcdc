@@ -2,7 +2,6 @@
 library(pbmcapply)
 library(NMI)
 library(tidyverse)
-library(tictoc)
 # devtools::install_github("aaamini/bcdc/bcdc_package")
 library(bcdc)
 
@@ -11,71 +10,23 @@ library(bcdc)
 source("./R/inference.R")
 source("./R/CASC/cascTuningMethods.R")
 
-simdata <- function(n, p, r, K) {
-  # n       : number of nodes
-  # p       : prob of edge within cluster
-  # r       : p*r = prob of edge between clusters
-  # K       : number of communities
-  
-  require(igraph)
-  require(abind)
-  
-  P <- matrix(p*r, K, K)
-  diag(P) <- p
-  
-  n_i <- rep(n/K, K)
-  A <- get.adjacency(sample_sbm(n, P, n_i))
-  
-  feature <- cbind(c(rep(0:1, c(n/2, n/2)))
-                   , rnorm(n, rep(2*(1:K)%%2-1, each = n/K)))
-  
-  return(list(A = A, Cov = feature, num = n_i))
-}
+source("./R/data_gen.R")
+source("./R/setup_methods.R")
 
 # Simulation ----
-n <- seq(300, 1000, 100)
+n <- seq(300, 1000, 200)
 p <- 0.3
 r <- .35
 n_iter <- 1500
-n_reps <- n_cores <- 32 # detectCores()
-
-
-
-methods <- list()
-
-methods[["BSBM"]] <- function(A, X, K) {
-  model <- new(SBM, A, K, alpha = 1, beta = 1)
-  get_map_labels(model$run_gibbs(n_iter))$z_map
-}
-
-methods[["k-means"]] <- function(A, X, K) {
-  kmeans(X, centers = K, nstart = 20)$cluster
-}
-
-methods[["SC"]] <- function(A, X, K) {
-  nett::spec_clust(A, K)
-}
-
-methods[["BCDC"]] <- function(A, X, K) {
-  bcdc_model <- new(CovarSBM, A, alpha = 10, beta = 1, dp_concent = 10)
-  bcdc_model$set_discrete_features(X[, 1, drop = FALSE])
-  bcdc_model$set_continuous_features(X[, 2, drop = FALSE])
-  get_map_labels(bcdc_model$run_gibbs(n_iter))$z_map
-}
-
-# methods[["CASC"]] <- function(A, X, K) {
-#   kmeans(getCascAutoSvd(A, scale(X), K, enhancedTuning = TRUE)$singVec
-#          , centers = K, nstart = 20)$cluster
-# }
-
-mtd_names <- names(methods)
+n_reps <- n_cores <- 3 # detectCores()
 
 
 runs <- expand.grid(n = n, p = p, r = r, rep = seq_len(n_reps))
 runs$K <- runs$n / 50
 
-res <- do.call(rbind, pbmclapply(seq_len(nrow(runs)), function(ri) {r
+res <- do.call(rbind, mclapply(seq_len(nrow(runs)), function(ri) {r
   set.seed(ri)
+  cat('.')
   
   rep <- runs[ri,"rep"]
   n <- runs[ri, "n"]
@@ -83,15 +34,15 @@ res <- do.call(rbind, pbmclapply(seq_len(nrow(runs)), function(ri) {r
   r <- runs[ri, "r"]
   K <- runs[ri, "K"]
   
-  sim <- simdata(n, p, r, K)
+  sim <- scale_sim_data(n, p, r, K)
   A <- sim$A
-  X <- sim$Cov
-  simnum <- sim$num
-  z_true <- rep(1:K, simnum)
+  Xc = sim$Xc
+  Xd = sim$Xd
+  z_true <- sim$z_true
 
   do.call(rbind, lapply(seq_along(methods), function(j) { 
     start_time = Sys.time()
-    zh <- as.vector(methods[[j]](A, X, K))
+    zh <- as.vector(methods[[j]](A, Xc, Xd, K))
     data.frame(
       time = as.numeric(Sys.time() - start_time)
       , rep = rep

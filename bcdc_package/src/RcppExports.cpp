@@ -11,6 +11,45 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// get_freq
+arma::uvec get_freq(const arma::uvec& z, const int K);
+RcppExport SEXP _bcdc_get_freq(SEXP zSEXP, SEXP KSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::uvec& >::type z(zSEXP);
+    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_freq(z, K));
+    return rcpp_result_gen;
+END_RCPP
+}
+// comp_blk_sums
+arma::mat comp_blk_sums(arma::sp_mat At, arma::uvec z, int Kcap);
+RcppExport SEXP _bcdc_comp_blk_sums(SEXP AtSEXP, SEXP zSEXP, SEXP KcapSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat >::type At(AtSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type z(zSEXP);
+    Rcpp::traits::input_parameter< int >::type Kcap(KcapSEXP);
+    rcpp_result_gen = Rcpp::wrap(comp_blk_sums(At, z, Kcap));
+    return rcpp_result_gen;
+END_RCPP
+}
+// comp_blk_sums_and_sizes
+List comp_blk_sums_and_sizes(const arma::sp_mat& At, const arma::uvec& z, const int Kcap, const bool div_diag);
+RcppExport SEXP _bcdc_comp_blk_sums_and_sizes(SEXP AtSEXP, SEXP zSEXP, SEXP KcapSEXP, SEXP div_diagSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::sp_mat& >::type At(AtSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type z(zSEXP);
+    Rcpp::traits::input_parameter< const int >::type Kcap(KcapSEXP);
+    Rcpp::traits::input_parameter< const bool >::type div_diag(div_diagSEXP);
+    rcpp_result_gen = Rcpp::wrap(comp_blk_sums_and_sizes(At, z, Kcap, div_diag));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_int
 int sample_int(int N);
 RcppExport SEXP _bcdc_sample_int(SEXP NSEXP) {
@@ -128,6 +167,9 @@ END_RCPP
 RcppExport SEXP _rcpp_module_boot_sbm_module();
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_bcdc_get_freq", (DL_FUNC) &_bcdc_get_freq, 2},
+    {"_bcdc_comp_blk_sums", (DL_FUNC) &_bcdc_comp_blk_sums, 3},
+    {"_bcdc_comp_blk_sums_and_sizes", (DL_FUNC) &_bcdc_comp_blk_sums_and_sizes, 4},
     {"_bcdc_sample_int", (DL_FUNC) &_bcdc_sample_int, 1},
     {"_bcdc_sample_int_vec", (DL_FUNC) &_bcdc_sample_int_vec, 2},
     {"_bcdc_stick_break", (DL_FUNC) &_bcdc_stick_break, 1},
