@@ -1,5 +1,6 @@
 # Libraries ----
-library(pbmcapply)
+library(parallel)
+library(doParallel)
 library(NMI)
 library(tidyverse)
 # devtools::install_github("aaamini/bcdc/bcdc_package")
@@ -18,15 +19,18 @@ n <- seq(300, 1000, 200)
 p <- 0.3
 r <- .35
 n_iter <- 1500
-n_reps <- n_cores <- 3 # detectCores()
+n_reps <- 10
 
+n_cores <- 40 # detectCores()
 
+# runs <- expand.grid(n = 600, p = p, r = r, rep = 1)
 runs <- expand.grid(n = n, p = p, r = r, rep = seq_len(n_reps))
 runs$K <- runs$n / 50
 
-res <- do.call(rbind, mclapply(seq_len(nrow(runs)), function(ri) {r
+
+res <- do.call(rbind, mclapply(seq_len(nrow(runs)), function(ri) {
   set.seed(ri)
-  cat('.')
+  # cat(sprintf("\\n%3d - ", ri))
   
   rep <- runs[ri,"rep"]
   n <- runs[ri, "n"]
@@ -39,8 +43,9 @@ res <- do.call(rbind, mclapply(seq_len(nrow(runs)), function(ri) {r
   Xc = sim$Xc
   Xd = sim$Xd
   z_true <- sim$z_true
-
-  do.call(rbind, lapply(seq_along(methods), function(j) { 
+  
+  do.call(rbind, lapply(seq_along(methods), function(j) {
+    cat(sprintf("\n  %s (n = %d)", mtd_names[j], n))
     start_time = Sys.time()
     zh <- as.vector(methods[[j]](A, Xc, Xd, K))
     data.frame(
@@ -59,6 +64,7 @@ res <- res %>%
   mutate(method = factor(method
                          , levels = c("BCDC", "BSBM", "CASC", "SC", "k-means")))
 
+save(res, file = "scale_results.RData")
 
 # Visualize ----
 res %>%

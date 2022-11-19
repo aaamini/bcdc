@@ -15,7 +15,7 @@ scale_sim_data <- function(n, p, r, K) {
   A <- get.adjacency(sample_sbm(n, P, table(z_true)))
   
   Xc = matrix(rnorm(n, 2*(z_true %% 2) -1), ncol=1)
-  Xd = ifelse(z_true <= K/2 , 0, 1)
+  Xd = matrix(ifelse(z_true <= K/2 , 0, 1), ncol=1)
   # feature <- cbind(c(rep(0:1, c(n/2, n/2)))
   #                  , rnorm(n, rep(2*(1:K)%%2-1, each = n/K)))
   # 
