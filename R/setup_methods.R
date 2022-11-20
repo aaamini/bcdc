@@ -21,8 +21,10 @@ methods[["BCDC"]] <- function(A, Xc, Xd, K) {
 }
 
 methods[["CASC"]] <- function(A, Xc, Xd, K) {
+  # (CASCORE)
+  # CASC(A, scale(cbind(Xc, Xd)), K)
   kmeans(getCascAutoSvd(A, scale(cbind(Xc, Xd)), K, enhancedTuning = TRUE)$singVec
-         , centers = K, nstart = 20)$cluster
+          , centers = K, nstart = 20)$cluster
 }
 
 mtd_names <- names(methods)
