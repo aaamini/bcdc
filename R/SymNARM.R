@@ -32,6 +32,14 @@ crt_vec <- function(n_vec, theta_vec){
   # out[idx] = mapply(crt, n_vec[idx], theta_vec[idx])
 }
 
+CalAcceptProb1 <- function(r_k, c, gamma0, gamma0new, a_new, c_new, K, realmin) {
+  exp( sum( (gamma0new/K-gamma0/K) * log(c)
+            - (lgamma(gamma0new/K)-lgamma(gamma0/K))
+            + (gamma0new/K-gamma0/K) * log(max(r_k, realmin)) )
+       + (a_new) * (log(gamma0)-log(gamma0new)) - c_new*(gamma0-gamma0new)
+  )
+}
+
 SymNARM <- function(B, X, K = 100, idx_train, idx_test
                     , Burnin = 1500, Collections = 1500, realmin = 1e-30) {
   # "Leveraging Node Attributes for Incomplete Relational Data"
@@ -65,7 +73,7 @@ SymNARM <- function(B, X, K = 100, idx_train, idx_test
   EPS <- 0
   
   links <- which(B[idx_test] > 0)
-    
+  
   Epsilon <- 1
   beta1 <- 1
   beta2 <- 1
@@ -158,40 +166,72 @@ SymNARM <- function(B, X, K = 100, idx_train, idx_test
       Phi_times_Lambda_KK[i, ] <- Phi[i, ] %*% Lambda_KK
     }
     
-   # EPM: Sample c_i
-   # MATLAB: gamrnd(a,b) in MATLAB has shape parameter a and scale parameter b
-   # MATLAB: c_i = gamrnd(1e-0 + sum(g,2), 1./(1e-0 +  sum(Phi,2)));  
-   # c_i <- rgamma(1 + rowSums(g, 2), 1 / (1 +  rowSums(Phi)))
-   c_i <- matrix(rgamma(N, shape = 1 + rowSums(g), rate = 1 +  rowSums(Phi)), ncol=1)
-   
-   
-   Phi_KK <- crossprod(Phi, BTrain_Mask) %*% Phi
-   
-   diag(Phi_KK) <- diag(Phi_KK) / 2
-   
-   triu1dex <- triu(matrix(1, K, K), 1)
-   diagdex <- Diagonal(K) # sparse(1:K,1:K,true);
-   
-   # EPM: Sample r_k
-   L_KK = matrix(0, K, K)
-   temp_p_tilde_k= matrix(0, K, 1)
-   p_kk_prime_one_minus = matrix(0, K, K)
-   for (k in sample(K)) {
-    R_KK = t(r_k)
-    R_KK[k] = Epsilon
-    beta3 = beta2*matrix(1,1,K)
-    beta3[k] = beta1
-    p_kk_prime_one_minus[k,] = beta3 / (beta3 + Phi_KK[k,])
-        
-    # L_KK[k,] = CRT_sum_mex_matrix(sparse(m_dot_k_k_dot(k,:)),r_k(k)*R_KK);
-    L_KK[k,] = crt_vec(m_dot_k_k_dot[k,], r_k[k]*R_KK)
-    temp_p_tilde_k[k] = -sum(R_KK*log(max(p_kk_prime_one_minus[k,], realmin)))
-    r_k[k] = rgamma(1, gamma0/K+sum(L_KK[k,])) / (c0+temp_p_tilde_k[k])
-   }
-  
-   #  EPM: Sample gamma0 with independence chain M-H
-   ell_tilde = crt_vec(as.numeric(rowSums(L_KK)), gamma0/K*rep(1,K))  # This is just ell_tilde_k ~ CRT(sum_{k_2} l_{k k_2}, gamma_0/K)
-     
+    # EPM: Sample c_i
+    # MATLAB: gamrnd(a,b) in MATLAB has shape parameter a and scale parameter b
+    # MATLAB: c_i = gamrnd(1e-0 + sum(g,2), 1./(1e-0 +  sum(Phi,2)));  
+    # c_i <- rgamma(1 + rowSums(g, 2), 1 / (1 +  rowSums(Phi)))
+    c_i <- matrix(rgamma(N, shape = 1 + rowSums(g), rate = 1 +  rowSums(Phi)), ncol=1)
+    
+    Phi_KK <- crossprod(Phi, BTrain_Mask) %*% Phi
+    
+    diag(Phi_KK) <- diag(Phi_KK) / 2
+    
+    triu1dex <- triu(matrix(1, K, K), 1)
+    diagdex <- Diagonal(K) # sparse(1:K,1:K,true);
+    
+    # EPM: Sample r_k
+    L_KK = matrix(0, K, K)
+    temp_p_tilde_k= matrix(0, K, 1)
+    p_kk_prime_one_minus = matrix(0, K, K)
+    for (k in sample(K)) {
+      R_KK = t(r_k)
+      R_KK[k] = Epsilon
+      beta3 = beta2*matrix(1,1,K)
+      beta3[k] = beta1
+      p_kk_prime_one_minus[k,] = beta3 / (beta3 + Phi_KK[k,])
+      
+      # L_KK[k,] = CRT_sum_mex_matrix(sparse(m_dot_k_k_dot(k,:)),r_k(k)*R_KK);
+      L_KK[k,] = crt_vec(m_dot_k_k_dot[k,], r_k[k]*R_KK)
+      temp_p_tilde_k[k] = -sum(R_KK*log(max(p_kk_prime_one_minus[k,], realmin)))
+      r_k[k] = rgamma(1, gamma0/K+sum(L_KK[k,])) / (c0+temp_p_tilde_k[k])
+    }
+    
+    #  EPM: Sample gamma0 with independence chain M-H
+    ell_tilde = crt_vec(as.numeric(rowSums(L_KK)), gamma0/K*rep(1,K))  # This is just ell_tilde_k ~ CRT(sum_{k_2} l_{k k_2}, gamma_0/K)
+    sum_p_tilde_k_one_minus = -sum(log(c0 / (c0+temp_p_tilde_k) ))
+    gamma0new = rgamma(1, shape = e_0 + ell_tilde) / (f_0 + 1/K * sum_p_tilde_k_one_minus)
+    AcceptProb1 = CalAcceptProb1(r_k,c0,gamma0,gamma0new,ell_tilde,1/K*sum_p_tilde_k_one_minus,K, realmin)
+    if (AcceptProb1 > runif(1)) {
+      gamma0 = gamma0new
+      count = count+1
+    }
+    c0 = rgamma(1, shape = 1 + gamma0)/(1+sum(r_k))
+    
+    # EPM: Sample Epsilon
+    ell = sum(CRT_sum_mex_matrix( t(sparse(m_dot_k_k_dot(diagdex))), tcrossprod(Epsilon, r_k)))
+    Epsilon = rgamma(1, shape = ell+1e-2)/(1e-2-sum(r_k*log(max(p_kk_prime_one_minus(diagdex), realmin)))) 
+    
+    # EPM: Sample lambda_{k_1 k_2}
+    R_KK = tcrossprod(r_k)
+    diag(R_KK) = Epsilon * r_k
+    Lambda_KK <- matrix(0, K, K)
+    diag(Lambda_KK) = rgamma(K, shape = diag(m_dot_k_k_dot) + diag(R_KK)) / (beta1 + diag(Phi_KK))
+    Lambda_KK[triu1dex] <- rgamma(choose(K, 2), shape = m_dot_k_k_dot[triu1dex] + R_KK[triu1dex]) / (beta2 + Phi_KK[triu1dex])
+    Lambda_KK = Lambda_KK + t(triu(Lambda_KK))
+                
+    beta1 = rgamma(1, shape = sum(diag(R_KK))+sum(R_KK[triu1dex]) + 1e-0) / (1e-0+ sum(diag(Lambda_KK))+sum(Lambda_KK[triu1dex]))
+    beta2 = beta1
+                
+    # Compute and collect probabilites
+    Prob = Phi %*% tcrossprod(Lambda_KK, Phi) + EPS
+    Prob = 1-exp(-Prob)
+    if (iter > Burnin) {
+      ProbSamples = ProbSamples + Prob
+      ProbAve = ProbSamples / (iter - Burnin)
+    } else {
+      ProbAve = Prob
+    }
+
   } # end iter loop
-  L_KK # for test only, we get the zero matrix
+  
 }

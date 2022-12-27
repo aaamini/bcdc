@@ -6,10 +6,11 @@ library(igraph)
 library(NMI)
 library(scales)
 library(dplyr)
+# devtools::install_github("aaamini/bcdc/bcdc_package")
+library(bcdc)
+library(CASCORE)
 
 # Functions ----
-Rcpp::sourceCpp("./src/SBM.cpp", verbose = T)
-Rcpp::sourceCpp("./src/CovarSBM.cpp", verbose = T)
 source("./R/inference.R")
 source("./R/CASC/cascTuningMethods.R")
 source("R/bic.R")
@@ -70,11 +71,12 @@ bcdc$set_continuous_features(Cov)
 Z_bcdc <- get_map_labels(bcdc$run_gibbs(n_iter))$z_map
 
 # CASC ----
-Z_casc <- kmeans(getCascSvd(graphMat = A
-                            , covariates = Cov
-                            , hTuningParam = mean(colSums(A))
-                            , nBlocks = K)$singVec
+Z_casc <- kmeans(getCascAutoSvd(A, scale(Cov)
+                                , K, enhancedTuning = TRUE)$singVec
                  , centers = K, nstart = 20)$cluster
+
+# CASCORE ----
+Z_cascore <- CASCORE(as.matrix(A), Cov, K)
 
 # k-means ----
 Z_kmeans <- kmeans(Cov, centers = K, nstart = 20)$cluster
@@ -91,6 +93,7 @@ Z_bsbm <- get_map_labels(bsbm$run_gibbs(n_iter))$z_map
 # NMI
 nmi_wrapper(Z_true, Z_bcdc)
 nmi_wrapper(Z_true, Z_casc)
+nmi_wrapper(Z_true, Z_cascore)
 nmi_wrapper(Z_true, Z_kmeans)
 nmi_wrapper(Z_true, Z_SC)
 nmi_wrapper(Z_true, Z_bsbm)
@@ -98,6 +101,7 @@ nmi_wrapper(Z_true, Z_bsbm)
 # BIC
 get_sbm_bic(A, as.integer(Z_true))
 get_sbm_bic(A, sort_labels(Z_bcdc))
+get_sbm_bic(A, Z_cascore)
 get_sbm_bic(A, Z_casc)
 get_sbm_bic(A, Z_kmeans)
 get_sbm_bic(A, Z_SC)
@@ -131,19 +135,3 @@ pheatmap(A[idx, idx]
          , annotation_names_row = F
          , show_rownames = F, show_colnames = F
          , annotation_legend = F, legend = F)
-
-
-
-
-# library(readr)
-# V(g)$group = as.integer(Z_true)
-# g1 = nett::extract_largest_cc(g)
-# coord = layout_with_fr(g1) %>% scale
-# write_csv(data.frame(id = V(g1)$name, group = V(g1)$group, 
-#                      degree = degree(g1),
-#                      xi=coord[,1], yi=coord[,2]), 'nodes.csv')
-# 
-# edge_list = data.frame(igraph::as_edgelist(g1))
-# colnames(edge_list) = c("source","target")
-# edge_list$strength = 1 # E(g1)$width
-# write_csv(edge_list, 'links.csv')

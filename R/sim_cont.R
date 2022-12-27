@@ -1,93 +1,74 @@
 # Libraries ----
-library(pbmcapply)
-library(tictoc)
-library(dplyr)
-library(ggplot2)
+library(parallel)
+library(doParallel)
+library(NMI)
+library(tidyverse)
 # devtools::install_github("aaamini/bcdc/bcdc_package")
 library(bcdc)
+library(CASCORE)
 
 # Functions ----
 source("./R/inference.R")
 source("./R/CASC/cascTuningMethods.R")
 
+source("./R/data_gen.R")
+source("./R/setup_methods.R")
+
 # Simulation ----
-n <- 150
 K <- 2
-alpha <- beta <- 1
-dp_concent <- 10
-
-niter <- 1000
-nreps <- n_cores <- detectCores()
-
-r <- 0.3 # 0.4, 0.5, 0.7
+n <- 150
 p <- 0.1
-eta <- matrix(c(p, r*p, r*p, p), nrow = 2)
+r <- 0.3
+n_iter <- 1000
+n_reps <- n_cores <- detectCores()
 
-methods <- list()
+runs <- expand.grid(mu = seq(0, 2, by = 0.25), rep = seq_len(n_reps))
 
-methods[["BSBM"]] <- function(A, X) {
-  model <- new(SBM, A, K, alpha, beta)
-  get_map_labels(model$run_gibbs(niter))$z_map
-}
+progress_file = "progress.log"
+system(sprintf("> %s", progress_file))
 
-methods[["k-means"]] <- function(A, X) {
-  kmeans(X, K, nstart = 20)$cluster
-}
-
-methods[["SC"]] <- function(A, X) {
-  nett::spec_clust(A, K)
-}
-
-methods[["BCDC"]] <- function(A, X) {
-  bcdc <- new(CovarSBM, A, alpha, beta, dp_concent)
-  bcdc$set_continuous_features(X)
-  get_map_labels(bcdc$run_gibbs(niter))$z_map
-}
-
-methods[["CASC"]] <- function(A, X) {
-  kmeans(getCascAutoSvd(A, X, K, enhancedTuning = TRUE)$singVec
-         , centers = K, nstart = 20)$cluster
-}
-
-mtd_names <- names(methods)
-
-runs <- expand.grid(mu = seq(0, 2, by = 0.25), rep = seq_len(nreps))
-
-res <- do.call(rbind, pbmclapply(seq_len(nrow(runs)), function(ri) {r
+res <- do.call(rbind, mclapply(seq_len(nrow(runs)), function(ri) {
   set.seed(ri)
   
   rep <- runs[ri,"rep"]
-  mu <- runs[ri,"mu"]
+  mu <- runs[ri, "mu"]
   
-  z_tru <- sample(1:K, n, replace = T, prob = c(1, 2))
-  A <- nett::fast_sbm(z_tru, eta)
+  sim <- cont_sim_data(n, p, r, mu)
+  A <- sim$A
+  Xc <- sim$Xc
+  Xd = NULL
+  z_true <- sim$z_true
   
-  Mu <- rbind(c(mu, 0), c(-mu,0))
-  X <- do.call(cbind, lapply(1:ncol(Mu), function(j) {
-    rnorm(n, mean = Mu[z_tru,j])
-  }))
-  
-  do.call(rbind, lapply(seq_along(methods), function(j) { 
-    tic()
-    zh <- as.vector(methods[[j]](A, X)) + 1
-    dt <- toc(quiet = T)
+  out = do.call(rbind, lapply(seq_along(methods), function(j) {
+    start_time = Sys.time()
+    zh <- as.vector(methods[[j]](A, Xc, Xd, K))
+    end_time = as.numeric(Sys.time() - start_time)
+    cat(sprintf("\n%10s (n = %4d) done in %3.2g (s)", mtd_names[j], n, end_time))
     data.frame(
-      dt = as.numeric(dt$toc - dt$tic)
+      time = end_time
       , rep = rep
+      , n = n
+      , p = p
+      , r = r
       , mu = mu
-      , nmi = nmi_wrapper(z_tru, zh)
+      , nmi = nmi_wrapper(z_true, zh)
       , method = mtd_names[j])
   }))
+  system(sprintf('echo -n "." >> %s', progress_file))
+  
+  out 
 }, mc.cores = n_cores))
 
 res <- res %>%
   mutate(method = factor(method
-                         , levels = c("BCDC", "BSBM", "CASC", "SC", "k-means")))
+                         , levels = c("BCDC", "BSBM", "CASC", "CASCORE", "SC", "k-means")))
 
+save(res, file = "cont_results.RData")
+
+# Visualize ----
 res %>%
-  ggplot(aes(x = as.factor(mu), y = nmi, fill = method)) + 
+  ggplot(aes(x = factor(mu), y = nmi, fill = method, color = method)) +
   geom_boxplot() +
-  guides(fill = "none") +
   ylab("NMI") + xlab(expression(mu)) +
-  labs(title = sprintf("r = %2.1f", r)) +
+  guides(fill = "none") +
   theme_minimal(base_size = 15)

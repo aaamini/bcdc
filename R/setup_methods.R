@@ -14,17 +14,20 @@ methods[["SC"]] <- function(A, Xc, Xd, K) {
 }
 
 methods[["BCDC"]] <- function(A, Xc, Xd, K) {
-  bcdc_model <- new(CovarSBM, A, alpha = 10, beta = 1, dp_concent = 10)
-  bcdc_model$set_discrete_features(Xd)
-  bcdc_model$set_continuous_features(Xc)
+  bcdc_model <- new(CovarSBM, A, alpha = 1, beta = 1, dp_concent = 10)
+  if (!is.null(Xd)) bcdc_model$set_discrete_features(Xd)
+  if (!is.null(Xc)) bcdc_model$set_continuous_features(Xc)
+  
   get_map_labels(bcdc_model$run_gibbs(n_iter))$z_map
 }
 
 methods[["CASC"]] <- function(A, Xc, Xd, K) {
-  # (CASCORE)
-  # CASC(A, scale(cbind(Xc, Xd)), K)
   kmeans(getCascAutoSvd(A, scale(cbind(Xc, Xd)), K, enhancedTuning = TRUE)$singVec
-          , centers = K, nstart = 20)$cluster
+         , centers = K, nstart = 20)$cluster
+}
+
+methods[["CASCORE"]] <- function(A, Xc, Xd, K) {
+  CASCORE(as.matrix(A), cbind(Xc, Xd+1), K)
 }
 
 mtd_names <- names(methods)
