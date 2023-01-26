@@ -19,8 +19,7 @@ n <- seq(300, 1000, 100)
 p <- 0.3
 r <- .35
 n_iter <- 1500
-n_reps <- 40
-
+n_reps <- 500
 n_cores <- detectCores()
 
 runs <- expand.grid(n = n, p = p, r = r, rep = seq_len(n_reps))
@@ -70,16 +69,37 @@ res <- res %>%
 save(res, file = "scale_results.RData")
 
 # Visualize ----
-res %>%
-  ggplot(aes(x = factor(n), y = nmi, fill = method, color = method)) +
-  geom_boxplot() +
-  ylab("NMI") + xlab("n") +
-  guides(fill = "none") +
-  theme_minimal(base_size = 15)
+mean_res =  res %>% 
+  group_by(method, n) %>% 
+  summarise(mean_nmi = mean(nmi), lower=quantile(nmi,.25), upper=quantile(nmi,.75), .groups="drop")
 
-res %>% 
-  ggplot(aes(x = factor(n), y = time, fill = method, color = method)) +
-  geom_boxplot() +
-  ylab("Seconds") + xlab("n") +
-  guides(fill = "none") +
-  theme_minimal(base_size = 15)
+mean_res %>% 
+  ggplot(aes(x = n, y = mean_nmi, color = method)) +
+  geom_line(size = 1.2) +
+  theme_minimal() +
+  ggplot2::theme(
+    legend.background = ggplot2::element_blank(),
+    legend.title = ggplot2::element_blank(),
+    legend.position = c(0.8, 0.825),
+    # legend.text = ggplot2::element_text(size=18),
+  ) +
+  ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
+  geom_ribbon(aes(ymin = lower, ymax=upper, fill= method), alpha= 0.1, linetype = "blank") +
+  ylab("NMI") + xlab("r")
+
+ggsave("sim_scale.pdf", width = 6, height = 6)
+
+mean_res =  res %>% 
+  group_by(method, n) %>% 
+  summarise(mean_time = mean(time), lower=quantile(time,.25), upper=quantile(time,.75), .groups="drop")
+
+mean_res %>% 
+  ggplot(aes(x = n, y = mean_time, color = method)) +
+  geom_line(size = 1.2) +
+  theme_minimal() +
+  theme(legend.position="none") +
+  ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
+  geom_ribbon(aes(ymin = lower, ymax=upper, fill= method), alpha= 0.1, linetype = "blank") +
+  ylab("Seconds") + xlab("n")
+
+ggsave("sim_scale_time.pdf", width = 6, height = 6)

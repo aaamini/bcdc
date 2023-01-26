@@ -17,7 +17,8 @@ source("./R/setup_methods.R")
 # Simulation ----
 K <- 2
 n_iter <- 1000
-n_reps <- n_cores <- detectCores()
+n_reps <- 500
+n_cores <- detectCores()
 
 runs <- expand.grid(n = 800, rep = seq_len(n_reps))
 
@@ -67,9 +68,13 @@ res %>%
   guides(fill = "none") +
   theme_minimal(base_size = 15)
 
+ggsave("sim_sparse.pdf", width = 6, height = 6)
+
 res %>%
   ggplot(aes(x = method, y = time, fill = method)) +
   geom_boxplot() +
-  ylab("NMI") + xlab("") +
+  ylab("Seconds") + xlab("") +
   guides(fill = "none") +
   theme_minimal(base_size = 15)
+
+ggsave("sim_sparse_time.pdf", width = 6, height = 6)

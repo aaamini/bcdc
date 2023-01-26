@@ -23,7 +23,8 @@ n <- 150
 p <- 0.3
 r <- .7
 n_iter <- 1500
-n_reps <- n_cores <- detectCores()
+n_reps <- 500
+n_cores <- detectCores()
 
 runs <- expand.grid(beta = seq(-.2, .2, by = .05), rep = seq_len(n_reps))
 
@@ -69,9 +70,22 @@ res <- res %>%
 save(res, file = "homophily_results.RData")
 
 # Visualize ----
-res %>%
-  ggplot(aes(x = factor(round(beta, 2)), y = nmi, fill = method, color = method)) +
-  geom_boxplot() +
-  ylab("NMI") + xlab(expression(beta)) +
-  guides(fill = "none") +
-  theme_minimal(base_size = 15)
+mean_res =  res %>% 
+  group_by(method, beta) %>% 
+  summarise(mean_nmi = mean(nmi), lower=quantile(nmi,.25), upper=quantile(nmi,.75), .groups="drop")
+
+mean_res %>% 
+  ggplot(aes(x = beta, y = mean_nmi, color = method)) +
+  geom_line(size = 1.2) +
+  theme_minimal() +
+  ggplot2::theme(
+    legend.background = ggplot2::element_blank(),
+    legend.title = ggplot2::element_blank(),
+    legend.position = c(0.15, 0.275),
+    # legend.text = ggplot2::element_text(size=18),
+  ) +
+  ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
+  geom_ribbon(aes(ymin = lower, ymax=upper, fill= method), alpha= 0.1, linetype = "blank") +
+  ylab("NMI") + xlab(expression(beta))
+
+ggsave("sim_homophily.pdf", width = 6, height = 6)
