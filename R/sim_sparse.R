@@ -63,14 +63,16 @@ res <- res %>%
 save(res, file = sprintf("sparse_results_nreps_%d.RData", n_reps))
 
 # Visualize ----
+n_reps = length(unique(res$rep)) # redefine n_reps based on "res"
 res %>%
   ggplot(aes(x = method, y = nmi, fill = method)) +
   geom_boxplot() +
   ylab("NMI") + xlab("") +
   guides(fill = "none") +
+  scale_y_continuous(breaks = round(seq(0.3, 0.9, by = 0.1),1)) +
   theme_minimal(base_size = 15)
 
-ggsave("sim_sparse.pdf", width = 6, height = 6)
+ggsave(sprintf("sim_sparse_nmi_nreps_%d.pdf", n_reps), width = 6, height = 6)
 
 res %>%
   ggplot(aes(x = method, y = time, fill = method)) +
@@ -79,4 +81,8 @@ res %>%
   guides(fill = "none") +
   theme_minimal(base_size = 15)
 
-ggsave("sim_sparse_time.pdf", width = 6, height = 6)
+ggsave(sprintf("sim_sparse_time_nreps_%d.pdf", n_reps), width = 6, height = 6)
+
+res %>% 
+  group_by(method) %>% 
+  summarise(mean_nmi = mean(nmi))
