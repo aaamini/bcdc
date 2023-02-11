@@ -22,9 +22,15 @@ methods[["BSBM"]] <- function(A, Xc, Xd, K) {
   get_map_labels(model$run_gibbs(n_iter))$z_map
 }
 
+# methods[["k-means (scaled)"]] <- function(A, Xc, Xd, K) {
+#   kmeans(scale(cbind(Xc, Xd)), centers = K, nstart = 20)$cluster # added scale
+# }
+
+
 methods[["k-means"]] <- function(A, Xc, Xd, K) {
-  kmeans(scale(cbind(Xc, Xd)), centers = K, nstart = 20)$cluster # added scale
+  kmeans(cbind(Xc, Xd), centers = K, nstart = 20)$cluster
 }
+
 
 methods[["SC"]] <- function(A, Xc, Xd, K) {
   nett::spec_clust(A, K)
@@ -39,23 +45,19 @@ methods[["BCDC"]] <- function(A, Xc, Xd, K) {
 }
 
 
-methods[["k-means (unscaled)"]] <- function(A, Xc, Xd, K) {
-  kmeans(cbind(Xc, Xd), centers = K, nstart = 20)$cluster
+methods[["CASC"]] <- function(A, Xc, Xd, K) {
+  kmeans(getCascAutoSvd(A, cbind(Xc, Xd), K, enhancedTuning = TRUE)$singVec
+         , centers = K, nstart = 20)$cluster
 }
 
-# methods[["CASC (unscaled)"]] <- function(A, Xc, Xd, K) {
-#   kmeans(getCascAutoSvd(A, cbind(Xc, Xd), K, enhancedTuning = TRUE)$singVec
-#          , centers = K, nstart = 20)$cluster
-# }
-
-# methods[["CASC"]] <- function(A, Xc, Xd, K) {
+# methods[["CASC (scaled)"]] <- function(A, Xc, Xd, K) {
 #   kmeans(getCascAutoSvd(A, scale(cbind(Xc, Xd)), K, enhancedTuning = TRUE)$singVec
 #          , centers = K, nstart = 20)$cluster
 # }
 # 
-# methods[["CASCORE"]] <- function(A, Xc, Xd, K) {
-#   CASCORE(as.matrix(A), cbind(Xc, Xd+1), K)
-# }
+methods[["CASCORE"]] <- function(A, Xc, Xd, K) {
+  CASCORE(as.matrix(A), cbind(Xc, Xd+1), K)
+}
 
 
 mtd_names <- names(methods)
@@ -72,13 +74,15 @@ Xd = NULL
 z_true <- sim$z_true
 
 res = do.call(rbind, lapply(seq_along(methods), function(j) {
-  print(mtd_names[j])
+  cat(sprintf('Running %-7s ...',  mtd_names[j]))
   start_time = Sys.time()
   zh <- as.vector(methods[[j]](A, Xc, Xd, K))
-  end_time = as.numeric(Sys.time() - start_time)
+  delta_time = as.numeric(Sys.time() - start_time)
+  cat(sprintf(' done in %3.2f s\n', delta_time))
   data.frame(method = mtd_names[j], 
-             nmi_wrapper(z_true, zh),
-             time = end_time)
+             nmi = nmi_wrapper(z_true, zh),
+             time = delta_time)
 }))
 
-print( knitr::kable(res, digits = 4, format = "pipe") )
+print( knitr::kable(res %>% arrange(desc(nmi)), 
+                    digits = 3, format = "pipe") )
