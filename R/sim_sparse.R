@@ -12,13 +12,15 @@ source("./R/inference.R")
 source("./R/CASC/cascTuningMethods.R")
 
 source("./R/data_gen.R")
+
+scaled = FALSE
 source("./R/setup_methods.R")
 
 # Simulation ----
 K <- 2
 n_iter <- 1000
-n_reps <- 500
-n_cores <- detectCores()
+n_reps <- 100
+n_cores <- 36 # detectCores()
 
 runs <- expand.grid(n = 800, rep = seq_len(n_reps))
 

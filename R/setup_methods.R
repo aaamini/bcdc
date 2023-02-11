@@ -5,9 +5,16 @@ methods[["BSBM"]] <- function(A, Xc, Xd, K) {
   get_map_labels(model$run_gibbs(n_iter))$z_map
 }
 
-methods[["k-means"]] <- function(A, Xc, Xd, K) {
-  kmeans(scale(cbind(Xc, Xd)), centers = K, nstart = 20)$cluster # added scale
+if (scaled) {
+  methods[["k-means"]] <- function(A, Xc, Xd, K) {
+    kmeans(scale(cbind(Xc, Xd)), centers = K, nstart = 20)$cluster # added scale
+  }
+} else {
+  methods[["k-means"]] <- function(A, Xc, Xd, K) {
+    kmeans(cbind(Xc, Xd), centers = K, nstart = 20)$cluster
+  }
 }
+
 
 methods[["SC"]] <- function(A, Xc, Xd, K) {
   nett::spec_clust(A, K)
@@ -21,11 +28,19 @@ methods[["BCDC"]] <- function(A, Xc, Xd, K) {
   get_map_labels(bcdc_model$run_gibbs(n_iter))$z_map
 }
 
-methods[["CASC"]] <- function(A, Xc, Xd, K) {
-  kmeans(getCascAutoSvd(A, scale(cbind(Xc, Xd)), K, enhancedTuning = TRUE)$singVec
-         , centers = K, nstart = 20)$cluster
+if (scaled) {
+  methods[["CASC"]] <- function(A, Xc, Xd, K) {
+    kmeans(getCascAutoSvd(A, scale(cbind(Xc, Xd)), K, enhancedTuning = TRUE)$singVec
+           , centers = K, nstart = 20)$cluster
+  }
+} else {
+  methods[["CASC"]] <- function(A, Xc, Xd, K) {
+    kmeans(getCascAutoSvd(A, cbind(Xc, Xd), K, enhancedTuning = TRUE)$singVec
+           , centers = K, nstart = 20)$cluster
+  }
 }
-
+  
+  
 methods[["CASCORE"]] <- function(A, Xc, Xd, K) {
   CASCORE(as.matrix(A), cbind(Xc, Xd+1), K)
 }
