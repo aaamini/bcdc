@@ -20,7 +20,7 @@ source("./R/setup_methods.R")
 K <- 2
 n_iter <- 1000
 n_reps <- 100
-n_cores <- 36 # detectCores()
+n_cores <- 45 # detectCores()
 
 runs <- expand.grid(n = 800, rep = seq_len(n_reps))
 
@@ -60,7 +60,7 @@ res <- res %>%
   mutate(method = factor(method
                          , levels = c("BCDC", "BSBM", "CASC", "CASCORE", "SC", "k-means")))
 
-save(res, file = "sparse_results.RData")
+save(res, file = sprintf("sparse_results_nreps_%d.RData", n_reps))
 
 # Visualize ----
 res %>%
