@@ -76,14 +76,14 @@ mean_res =  res %>%
 mean_res %>% 
   ggplot(aes(x = n, y = mean_nmi, color = method)) +
   geom_line(size = 1.2) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   ggplot2::theme(
     legend.background = ggplot2::element_blank(),
     legend.title = ggplot2::element_blank(),
-    legend.position = c(0.8, 0.825),
+    legend.position = c(0.8, 0.875),
     # legend.text = ggplot2::element_text(size=18),
   ) +
-  ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
+  ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = 1)) +
   geom_ribbon(aes(ymin = lower, ymax=upper, fill= method), alpha= 0.1, linetype = "blank") +
   ylab("NMI") + xlab("r")
 
@@ -98,9 +98,9 @@ mean_res =  res %>%
 mean_res %>% 
   ggplot(aes(x = n, y = mean_time, color = method)) +
   geom_line(size = 1.2) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   theme(legend.position="none") +
-  ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
+  ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = 1)) +
   geom_ribbon(aes(ymin = lower, ymax=upper, fill= method), alpha= 0.1, linetype = "blank") +
   ylab("Seconds") + xlab("n") +
   scale_y_continuous(trans="sqrt")
