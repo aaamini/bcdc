@@ -89,10 +89,12 @@ mean_res %>%
 
 ggsave("sim_scale.pdf", width = 6, height = 6)
 
+# Tried trimmed mean to avoid outliers, but there are too many outlies for CASC, etc.
 mean_res =  res %>% 
   group_by(method, n) %>% 
-  summarise(mean_time = mean(time), lower=quantile(time,.25), upper=quantile(time,.75), .groups="drop")
+  summarise(mean_time = mean(time, trim = 0.0), lower=quantile(time,.25), upper=quantile(time,.75), .groups="drop")
 
+# "sqrt" scale for the y-axis to improve visualization
 mean_res %>% 
   ggplot(aes(x = n, y = mean_time, color = method)) +
   geom_line(size = 1.2) +
@@ -100,6 +102,7 @@ mean_res %>%
   theme(legend.position="none") +
   ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
   geom_ribbon(aes(ymin = lower, ymax=upper, fill= method), alpha= 0.1, linetype = "blank") +
-  ylab("Seconds") + xlab("n")
+  ylab("Seconds") + xlab("n") +
+  scale_y_continuous(trans="sqrt")
 
-ggsave("sim_scale_time.pdf", width = 6, height = 6)
+ggsave("sim_scale_time_sqrt_nreps_500.pdf", width = 6, height = 6)
