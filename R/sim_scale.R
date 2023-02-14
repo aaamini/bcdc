@@ -69,7 +69,10 @@ res <- res %>%
 save(res, file = "scale_results.RData")
 
 # Visualize ----
-mean_res =  res %>% 
+res2 <- res %>%
+  filter(!(method == "CASC" & n > 600 & time < 5)) # CASC errors
+
+mean_res =  res2 %>% 
   group_by(method, n) %>% 
   summarise(mean_nmi = mean(nmi), lower=quantile(nmi,.25), upper=quantile(nmi,.75), .groups="drop")
 
@@ -80,7 +83,7 @@ mean_res %>%
   ggplot2::theme(
     legend.background = ggplot2::element_blank(),
     legend.title = ggplot2::element_blank(),
-    legend.position = c(0.8, 0.875),
+    legend.position = c(0.75, 0.875),
     # legend.text = ggplot2::element_text(size=18),
   ) +
   ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = 1)) +
@@ -90,9 +93,9 @@ mean_res %>%
 ggsave("sim_scale.pdf", width = 6, height = 6)
 
 # Tried trimmed mean to avoid outliers, but there are too many outlies for CASC, etc.
-mean_res =  res %>% 
+mean_res =  res2 %>% 
   group_by(method, n) %>% 
-  summarise(mean_time = mean(time, trim = 0.0), lower=quantile(time,.25), upper=quantile(time,.75), .groups="drop")
+  summarise(mean_time = mean(time), lower=quantile(time,.25), upper=quantile(time,.75), .groups="drop")
 
 # "sqrt" scale for the y-axis to improve visualization
 mean_res %>% 
@@ -105,4 +108,4 @@ mean_res %>%
   ylab("Seconds") + xlab("n") +
   scale_y_continuous(trans="sqrt")
 
-ggsave("sim_scale_time_sqrt_nreps_500.pdf", width = 6, height = 6)
+ggsave("sim_scale_time.pdf", width = 6, height = 6)
