@@ -14,7 +14,9 @@ source("./R/CASC/cascTuningMethods.R")
 source("./R/data_gen.R")
 
 scaled = FALSE
+scx = TRUE
 source("./R/setup_methods.R")
+
 
 # methods <- list()
 # 
@@ -64,7 +66,7 @@ source("./R/setup_methods.R")
 # mtd_names <- names(methods)
 
 n <- 800
-K <- 2
+K <- 3
 n_iter <- 1000
 
 set.seed(123)
@@ -75,7 +77,7 @@ Xd = NULL
 z_true <- sim$z_true
 
 res = do.call(rbind, lapply(seq_along(methods), function(j) {
-  cat(sprintf('Running %-7s ...',  mtd_names[j]))
+  cat(sprintf('Running %-14s ...',  mtd_names[j]))
   start_time = Sys.time()
   zh <- as.vector(methods[[j]](A, Xc, Xd, K))
   delta_time = as.numeric(Sys.time() - start_time)

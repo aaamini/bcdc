@@ -17,7 +17,7 @@ scaled = FALSE
 source("./R/setup_methods.R")
 
 # Simulation ----
-K <- 2
+K <- 3
 n_iter <- 1000
 n_reps <- 100
 n_cores <- 45 # detectCores()

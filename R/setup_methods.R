@@ -15,6 +15,21 @@ if (scaled) {
   }
 }
 
+if (scx) {
+  methods[["SC-X"]] <- function(A, Xc, Xd, K) {
+    X = cbind(Xc, Xd)
+    # Perform truncated SVD on X
+    svd_res = svd(X, nu = K)
+    # Use the first K singular vectors as the new X
+    # X = svd_res$u[, 1:K]
+    X = svd_res$u
+    
+    kmeans(X, centers = K, nstart = 20)$cluster
+  }
+}
+
+
+
 
 methods[["SC"]] <- function(A, Xc, Xd, K) {
   nett::spec_clust(A, K)
