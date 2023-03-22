@@ -56,7 +56,7 @@ res <- do.call(rbind, mclapply(seq_len(nrow(runs)), function(ri) {
 
 res <- res %>%
   mutate(method = factor(method
-                         , levels = c("BCDC", "BSBM", "CASC", "CASCORE", "SC", "k-means")))
+                         , levels = c("BCDC", "BSBM", "CASC", "CASCORE", "SC", "k-means", "SC-X")))
 
 save(res, file = "sparse_results.RData")
 
