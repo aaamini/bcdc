@@ -1,3 +1,10 @@
+if (!exists("scaled")) {
+  scaled = FALSE
+}
+if (!exists("scx")) {
+  scx = FALSE
+}
+
 methods <- list()
 
 methods[["BSBM"]] <- function(A, Xc, Xd, K) {

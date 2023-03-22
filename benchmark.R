@@ -13,8 +13,8 @@ source("./R/CASC/cascTuningMethods.R")
 
 source("./R/data_gen.R")
 
-scaled = FALSE
-scx = TRUE
+# scaled = FALSE  # default is FALSE
+scx = TRUE        # defualt is FALSE
 source("./R/setup_methods.R")
 
 
