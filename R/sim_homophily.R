@@ -19,14 +19,14 @@ mtd_names <- names(methods)
 
 # Simulation ----
 K <- 3
-n <- 150
+n <- 1200
 p <- 0.3
 r <- .7
 n_iter <- 1500
 n_reps <- 500
 n_cores <- detectCores()
 
-runs <- expand.grid(beta = seq(-.2, .2, by = .05), rep = seq_len(n_reps))
+runs <- expand.grid(beta = seq(-.2, .2, by = .01), rep = seq_len(n_reps))
 
 progress_file = "progress.log"
 system(sprintf("> %s", progress_file))
@@ -78,13 +78,14 @@ mean_res %>%
   ggplot(aes(x = beta, y = mean_nmi, color = method)) +
   geom_line(size = 1.2) +
   theme_minimal() +
-  ggplot2::theme(
-    legend.background = ggplot2::element_blank(),
-    legend.title = ggplot2::element_blank(),
-    legend.position = c(0.15, 0.275),
-    # legend.text = ggplot2::element_text(size=18),
-  ) +
-  ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
+  theme(legend.position="none") +
+  # ggplot2::theme(
+  #   legend.background = ggplot2::element_blank(),
+  #   legend.title = ggplot2::element_blank(),
+  #   legend.position = c(0.15, 0.275),
+  #   # legend.text = ggplot2::element_text(size=18),
+  # ) +
+  # ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
   geom_ribbon(aes(ymin = lower, ymax=upper, fill= method), alpha= 0.1, linetype = "blank") +
   ylab("NMI") + xlab(expression(beta))
 
