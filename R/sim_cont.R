@@ -81,9 +81,10 @@ mean_res %>%
   #   legend.position = c(0.15, 0.8),
   #   # legend.text = ggplot2::element_text(size=18),
   # ) +
-  theme(legend.position="none") +
+  theme(legend.position="none"
+        , plot.title = element_text(hjust = 0.5)) +
   ggplot2::guides(colour = ggplot2::guide_legend(keywidth = 2, keyheight = .75)) +
   geom_ribbon(aes(ymin = lower, ymax=upper, fill= method), alpha= 0.1, linetype = "blank") +
-  ylab("NMI") + xlab(expression(mu))
+  ylab("NMI") + xlab(expression(mu)) + ggtitle(paste0("r = ", r))
 
 ggsave(paste0("sim_cont_", r, ".pdf"), width = 6, height = 6)
