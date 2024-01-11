@@ -38,5 +38,5 @@ get_map_labels <- function(z_mat, burnin = NULL){
   z_map = sapply(1:n, function(i) find_modes(z_mat[i,])[1])
   confidence = sapply(1:n, function(i) sum(z_mat[i,] == z_map[i])/length(z_mat[i,]) )
 
-  list(z_map = z_map, confidence = confidence)
+  list(z_map = z_map, confidence = confidence, z_mat = z_mat)
 }

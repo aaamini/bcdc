@@ -12,6 +12,7 @@ library(CASCORE)
 source("./R/inference.R")
 source("./R/CASC/cascTuningMethods.R")
 source("R/bic.R")
+source("R/waic.R")
 
 mytriangle <- function(coords, v = NULL, params) {
   vertex.color <- params("vertex", "color")
@@ -69,7 +70,8 @@ n_iter <- 1000
 
 bcdc <- new(CovarSBM, A, alpha = 10, beta = 10, dp_concent = 1)
 bcdc$set_continuous_features(Cov)
-Z_bcdc <- get_map_labels(bcdc$run_gibbs(n_iter))$z_map
+zout <- get_map_labels(bcdc$run_gibbs(n_iter))
+Z_bcdc <- zout$z_map
 
 # CASC ----
 Z_casc <- kmeans(getCascAutoSvd(A, scale(Cov)
@@ -87,7 +89,8 @@ Z_SC <- nett::spec_clust(A, K)
 
 # BSBM ----
 bsbm <- new(SBM, A, K, alpha = 1, beta = 1)
-Z_bsbm <- get_map_labels(bsbm$run_gibbs(n_iter))$z_map
+z2out <- get_map_labels(bsbm$run_gibbs(n_iter))
+Z_bsbm <- z2out$z_map
 
 # Results ----
 
@@ -107,6 +110,15 @@ get_sbm_bic(A, Z_casc)
 get_sbm_bic(A, Z_kmeans)
 get_sbm_bic(A, Z_SC)
 get_sbm_bic(A, Z_bsbm)
+
+# WAIC
+get_sbm_waic(A, as.integer(Z_true))
+mean(sapply(1:501, function(i) get_sbm_waic(A, sort_labels(zout$z_mat[, i]))))
+get_sbm_waic(A, Z_cascore)
+get_sbm_waic(A, Z_casc)
+get_sbm_waic(A, Z_kmeans)
+get_sbm_waic(A, Z_SC)
+mean(sapply(1:501, function(i) get_sbm_waic(A, sort_labels(z2out$z_mat[, i]))))
 
 G <- graph_from_adjacency_matrix(A, mode = "undirected")
 

@@ -36,18 +36,3 @@ get_sbm_bic = function(A, z, type = "exact", eps = 1e-20) {
   
   bic
 }
-
-get_bcdc_marg_loglike = function(A, z, eps = 1e-20) {
-  nn = table(z)
-  K = max(z) # length(nn)
-  n = length(z)
-  out = comp_blk_sums_and_sizes(A, z-1, K)
-  M = out$lambda
-  N = out$NN
-  
-  temp = lbeta(M + 1, N - M + 1)
-  term1 = sum(get_upper_tri(temp, diag = T))
-  # term2 = lmbeta(nn+1)
-  term1 
-}
-
