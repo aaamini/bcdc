@@ -105,20 +105,20 @@ nmi_wrapper(Z_true, Z_bsbm)
 # BIC
 get_sbm_bic(A, as.integer(Z_true))
 get_sbm_bic(A, sort_labels(Z_bcdc))
-get_sbm_bic(A, Z_cascore)
 get_sbm_bic(A, Z_casc)
+get_sbm_bic(A, Z_cascore)
 get_sbm_bic(A, Z_kmeans)
 get_sbm_bic(A, Z_SC)
 get_sbm_bic(A, Z_bsbm)
 
 # WAIC
 get_sbm_waic(A, as.integer(Z_true))
-mean(sapply(1:501, function(i) get_sbm_waic(A, sort_labels(zout$z_mat[, i]))))
-get_sbm_waic(A, Z_cascore)
+get_sbm_waic(A, sort_labels(Z_bcdc))
 get_sbm_waic(A, Z_casc)
+get_sbm_waic(A, Z_cascore)
 get_sbm_waic(A, Z_kmeans)
 get_sbm_waic(A, Z_SC)
-mean(sapply(1:501, function(i) get_sbm_waic(A, sort_labels(z2out$z_mat[, i]))))
+get_sbm_waic(A, sort_labels(Z_bsbm))
 
 G <- graph_from_adjacency_matrix(A, mode = "undirected")
 
